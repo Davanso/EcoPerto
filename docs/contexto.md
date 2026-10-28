@@ -490,12 +490,12 @@ A aplicação deverá tratar falhas dos serviços externos sem comprometer a nav
 
 ### Fase 1 — Inicialização
 
-- [ ] Criar projeto Vite com React e TypeScript.
-- [ ] Configurar Tailwind CSS.
-- [ ] Configurar shadcn/ui.
-- [ ] Definir organização inicial.
-- [ ] Criar layout responsivo.
-- [ ] Preparar componentes básicos.
+- [x] Criar projeto Vite com React e TypeScript.
+- [x] Configurar Tailwind CSS.
+- [x] Configurar shadcn/ui.
+- [x] Definir organização inicial.
+- [x] Criar layout responsivo.
+- [x] Preparar componentes básicos.
 
 **Entrega:** estrutura inicial executável.
 
@@ -764,6 +764,6 @@ UNIVERSIDADE SÃO FRANCISCO. **Procedimentos para a curricularização da Extens
 
 ---
 
-**Status:** planejamento inicial.
+**Status:** fase 1 concluída — estrutura inicial executável.
 
-**Próxima etapa:** inicializar o projeto React + TypeScript + Vite, configurar Tailwind e shadcn/ui e implementar a primeira prova de conceito com Leaflet e Overpass API.
+**Próxima etapa:** fase 2 — implementar a prova de conceito com Leaflet, geolocalização e Overpass API.
