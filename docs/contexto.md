@@ -512,14 +512,14 @@ A aplicação deverá tratar falhas dos serviços externos sem comprometer a nav
 
 ### Fase 3 — Experiência principal
 
-- [ ] Criar lista de ecopontos.
-- [ ] Calcular distâncias.
-- [ ] Ordenar resultados.
+- [x] Criar lista de ecopontos.
+- [x] Calcular distâncias.
+- [x] Ordenar resultados.
 - [ ] Implementar filtros.
-- [ ] Criar visualização de detalhes.
-- [ ] Sincronizar lista e mapa.
-- [ ] Adicionar navegação externa.
-- [ ] Implementar busca manual.
+- [x] Criar visualização de detalhes.
+- [x] Sincronizar lista e mapa.
+- [x] Adicionar navegação externa.
+- [x] Implementar busca manual.
 
 **Entrega:** fluxo principal completo.
 
@@ -764,6 +764,6 @@ UNIVERSIDADE SÃO FRANCISCO. **Procedimentos para a curricularização da Extens
 
 ---
 
-**Status:** fases 1 e 2 implementadas — prova de conceito geográfica, com disponibilidade externa variável.
+**Status:** fases 1 e 2 implementadas; fluxo do mapa e fontes municipais validados para Indaiatuba (SP). Fase 3 em andamento: falta o filtro por material.
 
-**Próxima etapa:** fase 3 — experiência principal com lista, distâncias, filtros, detalhes e busca por localidade.
+**Próxima etapa:** concluir filtros por material e ampliar validação de localização em dispositivos reais. Fontes e limitações atuais: docs/desenvolvimento.md e docs/fontes-indaiatuba.md.

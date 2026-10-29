@@ -8,13 +8,11 @@ afterEach(() => vi.unstubAllGlobals())
 it('returns traced Indaiatuba points during an actual upstream outage, labelled as municipal data', async () => {
   vi.stubGlobal(
     'fetch',
-    vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ error: 'upstream unavailable' }), {
-          status: 503,
-        }),
-      ),
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: 'upstream unavailable' }), {
+        status: 503,
+      }),
+    ),
   )
   const result = await searchEcopoints(
     PILOT_LOCATION,

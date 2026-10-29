@@ -20,11 +20,11 @@ React · TypeScript · Vite · Tailwind CSS · shadcn/ui · Leaflet
 
 O EcoPerto está sendo desenvolvido para ajudar você a encontrar ecopontos, consultar os materiais aceitos e descobrir onde descartar com consciência — sem precisar de cadastro.
 
-**Agora:** mapa interativo, localização sob consentimento e busca de pontos de coleta em um raio de 5 km. Você também pode mover o mapa para pesquisar sem compartilhar sua localização.
+**Agora:** mapa em tons de cinza com pontos destacados, lista sincronizada, distâncias e rotas. Busque por cidade, pela área do mapa ou pela localização do dispositivo, com raio de 5, 10 ou 20 km.
 
-**A seguir:** lista integrada ao mapa, distâncias, filtros por material e pesquisa por localidade.
+**Região piloto:** Indaiatuba (SP), com quatro ecopontos de fonte municipal disponíveis mesmo quando a Overpass falha. [Conheça as fontes](docs/fontes-indaiatuba.md).
 
-> Versão inicial com dados colaborativos do OpenStreetMap. A cobertura e a disponibilidade dos serviços podem variar. A localização é solicitada somente por ação do usuário e não é salva em histórico.
+> Dados municipais e OpenStreetMap, com origem identificada. A localização depende da permissão e do suporte do navegador; a busca por cidade funciona sem ela. Sem histórico pessoal salvo.
 
 ### 🚀 Rodar localmente
 
