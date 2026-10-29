@@ -73,7 +73,7 @@ describe('Overpass gateway', () => {
   it('rejects genuine outages when no cached data exists', async () => {
     const fetcher = vi.fn().mockRejectedValue(new TypeError('network'))
     await expect(createOverpassService(fetcher)(center)).rejects.toThrow(
-      'indisponíveis',
+      'indisponível',
     )
     expect(fetcher).toHaveBeenCalledTimes(2)
   })

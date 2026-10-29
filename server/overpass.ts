@@ -3,6 +3,7 @@ import {
   isCoordinates,
   type Coordinates,
 } from '../src/domain/types/location.ts'
+import { ApiError } from './errors.ts'
 
 const DEFAULT_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
@@ -15,7 +16,7 @@ export function buildQuery(center: Coordinates, radius = 5000): string {
     !isCoordinates(center) ||
     !RADII.includes(radius as (typeof RADII)[number])
   ) {
-    throw new Error('Área de busca inválida.')
+    throw new ApiError(400, 'INVALID_AREA', 'Área de busca inválida.')
   }
   return `[out:json][timeout:12];nwr["amenity"="recycling"](around:${radius},${center.latitude.toFixed(3)},${center.longitude.toFixed(3)});out center tags;`
 }
@@ -40,7 +41,12 @@ export function createOverpassService(fetcher: typeof fetch = fetch) {
     const existing = pending.get(query)
     if (existing) return existing
     if (pending.size >= 4)
-      throw new Error('Há muitas buscas em andamento. Aguarde alguns segundos.')
+      throw new ApiError(
+        429,
+        'SEARCH_BUSY',
+        'Há muitas buscas em andamento. Aguarde alguns segundos.',
+        5,
+      )
 
     const task = (async (): Promise<OverpassResult> => {
       const endpoints = process.env.OVERPASS_URL
@@ -60,6 +66,14 @@ export function createOverpassService(fetcher: typeof fetch = fetch) {
             signal: AbortSignal.timeout(14000),
           })
           if (!response.ok) {
+            console.warn(
+              JSON.stringify({
+                event: 'overpass_failure',
+                provider: url.hostname,
+                reason: 'http',
+                status: response.status,
+              }),
+            )
             paused.set(endpoint, Date.now() + 60000)
             continue
           }
@@ -69,14 +83,24 @@ export function createOverpassService(fetcher: typeof fetch = fetch) {
           if (cache.size >= 100) cache.delete(cache.keys().next().value!)
           cache.set(query, entry)
           return { ...entry, freshness: 'live' }
-        } catch {
+        } catch (error) {
+          console.warn(
+            JSON.stringify({
+              event: 'overpass_failure',
+              provider: new URL(endpoint).hostname,
+              reason: error instanceof Error ? error.name : 'unknown',
+            }),
+          )
           paused.set(endpoint, Date.now() + 60000)
         }
       }
       if (cached && Date.now() - Date.parse(cached.fetchedAt) < 3600000)
         return { ...cached, freshness: 'stale' }
-      throw new Error(
-        'Os serviços de coleta estão indisponíveis agora. Seus resultados anteriores foram mantidos. Tente atualizar em um minuto.',
+      throw new ApiError(
+        503,
+        'ECOPOINTS_PROVIDER_UNAVAILABLE',
+        'A fonte de ecopontos desta região está indisponível agora. Tente novamente em um minuto ou consulte outra área.',
+        60,
       )
     })()
     pending.set(query, task)

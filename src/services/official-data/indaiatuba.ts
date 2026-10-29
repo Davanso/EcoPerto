@@ -1,6 +1,6 @@
-import type { Ecopoint } from '../../domain/types/ecopoint'
-import type { Coordinates } from '../../domain/types/location'
-import { distanceMeters } from '../../domain/rules/distance'
+import type { Ecopoint } from '../../domain/types/ecopoint.ts'
+import type { Coordinates } from '../../domain/types/location.ts'
+import { distanceMeters } from '../../domain/rules/distance.ts'
 
 const sourceUrl = 'https://www.indaiatuba.sp.gov.br/urbanismo/coleta-seletiva/'
 const common = {

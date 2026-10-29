@@ -1,15 +1,11 @@
 import type { Ecopoint } from '@/domain/types/ecopoint'
 import { isCoordinates, type Coordinates } from '@/domain/types/location'
-import { normalizeOverpass } from './normalize'
 import { searchOfficialPoints } from '@/services/official-data/indaiatuba'
+import type { EcopointSearchResult } from '@/domain/types/search'
+import { MATERIALS } from '@/domain/types/ecopoint'
 
 export const SEARCH_RADIUS_METERS = 5000
-export type SearchResult = {
-  points: Ecopoint[]
-  fetchedAt: string
-  freshness: 'live' | 'cache' | 'stale' | 'official'
-  warning?: string
-}
+export type SearchResult = EcopointSearchResult
 
 export async function searchEcopoints(
   center: Coordinates,
@@ -21,8 +17,7 @@ export async function searchEcopoints(
   signal.throwIfAborted()
   const official = searchOfficialPoints(center, radius)
   try {
-    const result = await searchRemote(center, signal, radius)
-    return { ...result, points: [...official, ...result.points] }
+    return await searchRemote(center, signal, radius)
   } catch (error) {
     if (signal.aborted || !official.length) throw error
     return {
@@ -72,13 +67,36 @@ async function searchRemote(
     )
   if (
     !payload ||
-    !['live', 'cache', 'stale'].includes(payload.freshness) ||
-    typeof payload.fetchedAt !== 'string'
+    !['live', 'cache', 'stale', 'official'].includes(payload.freshness) ||
+    typeof payload.fetchedAt !== 'string' ||
+    !Number.isFinite(Date.parse(payload.fetchedAt)) ||
+    !Array.isArray(payload.points) ||
+    !payload.points.every(isEcopoint)
   )
     throw new Error('O serviço retornou uma resposta inválida.')
   return {
-    points: normalizeOverpass(payload.data),
+    points: payload.points,
     fetchedAt: payload.fetchedAt,
     freshness: payload.freshness,
+    warning: typeof payload.warning === 'string' ? payload.warning : undefined,
   }
+}
+
+function isEcopoint(value: unknown): value is Ecopoint {
+  if (!value || typeof value !== 'object') return false
+  const point = value as Record<string, unknown>
+  return (
+    typeof point.id === 'string' &&
+    typeof point.name === 'string' &&
+    typeof point.latitude === 'number' &&
+    typeof point.longitude === 'number' &&
+    isCoordinates({ latitude: point.latitude, longitude: point.longitude }) &&
+    (point.source === 'osm' || point.source === 'official') &&
+    (point.acceptedMaterials === undefined ||
+      (Array.isArray(point.acceptedMaterials) &&
+        point.acceptedMaterials.every(
+          (material) =>
+            typeof material === 'string' && Object.hasOwn(MATERIALS, material),
+        )))
+  )
 }

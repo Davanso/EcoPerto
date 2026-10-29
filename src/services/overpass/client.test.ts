@@ -28,7 +28,7 @@ it('uses the same-origin API, approximate coordinates and requested radius', asy
   const fetchMock = vi.fn().mockResolvedValue(
     new Response(
       JSON.stringify({
-        data: { elements: [] },
+        points: [],
         fetchedAt: '2026-10-29',
         freshness: 'live',
       }),
@@ -78,7 +78,7 @@ it('rejects malformed JSON, network failures and partial responses', async () =>
     new Response('<html>'),
     new Response(
       JSON.stringify({
-        data: { elements: [], remark: 'timeout' },
+        points: [{ id: 'broken', latitude: 100 }],
         fetchedAt: '2026-10-29',
         freshness: 'live',
       }),

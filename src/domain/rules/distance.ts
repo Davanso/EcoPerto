@@ -1,4 +1,4 @@
-import type { Coordinates } from '../types/location'
+import type { Coordinates } from '../types/location.ts'
 
 export function distanceMeters(a: Coordinates, b: Coordinates): number {
   const radians = (degrees: number) => (degrees * Math.PI) / 180
