@@ -1,5 +1,5 @@
-import { type Ecopoint, type Material } from '@/domain/types/ecopoint'
-import { isCoordinates } from '@/domain/types/location'
+import { type Ecopoint, type Material } from '../../domain/types/ecopoint.ts'
+import { isCoordinates } from '../../domain/types/location.ts'
 
 const materialTags: Record<Material, string[]> = {
   paper: ['paper', 'cardboard'],
