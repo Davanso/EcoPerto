@@ -22,6 +22,7 @@ export type Ecopoint = {
   contact?: string
   source: 'osm' | 'official'
   sourceUrl?: string
+  coordinateSourceUrl?: string
   lastVerifiedAt?: string
   /** Distância aproximada em linha reta. */
   distanceMeters?: number
