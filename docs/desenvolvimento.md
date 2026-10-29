@@ -33,7 +33,9 @@ Apenas o clique em “Usar minha localização” solicita permissão. A primeir
 
 O navegador precisa disponibilizar a API, um contexto seguro e acesso à localização do sistema. Não é possível obrigar um navegador interno a fornecer coordenadas. Neste ambiente o navegador interno expirou sem posição; a obtenção física de GPS não foi comprovada. Os caminhos de sucesso, recusa, cancelamento e ausência de callback são testados automaticamente; a busca real por cidade foi validada no navegador.
 
-Coordenadas do dispositivo são arredondadas a três casas decimais, com 100 m adicionados à incerteza exibida. Não há histórico, cookies ou localStorage de localização. Área e consulta de cidade são enviadas à API do EcoPerto e aos provedores externos; os tiles também revelam a região visualizada. O cache de respostas no servidor é temporário, sem banco de dados; isso não elimina logs de infraestrutura externa.
+Coordenadas do dispositivo são arredondadas a três casas decimais, com 100 m adicionados à incerteza exibida. O marcador azul “Você” usa uma camada acima dos ecopontos; o enquadramento de resultados inclui a posição obtida. “Centralizar em mim” reenquadra sem uma nova consulta de localização. Sem coordenadas, a interface informa “posição ainda não obtida”; pesquisar uma cidade não cria uma posição pessoal.
+
+Não há histórico, cookies ou localStorage de localização. Área e consulta de cidade são enviadas à API do EcoPerto e aos provedores externos; os tiles também revelam a região visualizada. O cache de respostas no servidor é temporário, sem banco de dados; isso não elimina logs de infraestrutura externa.
 
 ## APIs
 
@@ -66,7 +68,9 @@ src/services/places/         cliente da pesquisa de localidades
 
 ## Validação e publicação
 
-Em 29/10/2026, os 29 testes passam, assim como build, lint e formatação. Testes incluem falhas dos provedores, cache, troca de instância, deduplicação de requisições, raio, preservação de resultados, StrictMode, GPS concedido/negado simulado, cancelamento e ausência de callback.
+Em 29/10/2026, os 32 testes passam, assim como build, lint e formatação. Testes incluem falhas dos provedores, cache, troca de instância, deduplicação de requisições, raio, preservação de resultados, StrictMode, GPS concedido/negado simulado, cancelamento e ausência de callback. Regressões da câmera verificam inclusão da posição do usuário nos limites, atualizações de resultados e centralização sem nova consulta.
+
+Rotas internas ainda não estão integradas; proposta em [rotas-no-app.md](rotas-no-app.md). A navegação externa permanece disponível.
 
 No navegador real: pesquisa por Indaiatuba, seleção do João Pioli, detalhes, link de rota, quatro marcadores e filtro cinza da base foram conferidos. Viewport de 390 px sem overflow horizontal. Overpass permaneceu indisponível durante parte da validação; a fonte municipal permaneceu utilizável. Nenhuma fixture de teste é usada como dado do produto.
 
