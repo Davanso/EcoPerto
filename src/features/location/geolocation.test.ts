@@ -67,5 +67,5 @@ it('cancels the operation even while device callbacks are pending', async () => 
 })
 it('handles insecure or unsupported contexts', async () => {
   vi.stubGlobal('window', { isSecureContext: false })
-  await expect(requestLocation()).rejects.toThrow('não está disponível')
+  await expect(requestLocation()).rejects.toThrow('HTTPS')
 })

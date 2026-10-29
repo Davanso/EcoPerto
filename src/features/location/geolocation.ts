@@ -1,13 +1,15 @@
 import { isCoordinates, type UserLocation } from '@/domain/types/location'
+import {
+  locationPolicyError,
+  LOCATION_ACCESS_MESSAGES,
+} from './location-access'
 
 export async function requestLocation(
   signal?: AbortSignal,
 ): Promise<UserLocation> {
   signal?.throwIfAborted()
-  if (!window.isSecureContext || !navigator.geolocation)
-    throw new Error(
-      'A localização não está disponível neste navegador. Busque por cidade ou escolha uma área no mapa.',
-    )
+  const policyError = locationPolicyError()
+  if (policyError) throw new Error(LOCATION_ACCESS_MESSAGES[policyError])
 
   return new Promise((resolve, reject) => {
     let finished = false
@@ -62,11 +64,15 @@ export async function requestLocation(
       }
       if (!retried) {
         retried = true
-        navigator.geolocation.getCurrentPosition(success, failure, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000,
-        })
+        try {
+          navigator.geolocation.getCurrentPosition(success, failure, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000,
+          })
+        } catch {
+          finish(new Error(unavailable))
+        }
         return
       }
       finish(

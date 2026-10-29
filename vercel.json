@@ -1,3 +1,11 @@
 {
-  "functions": { "api/*.ts": { "maxDuration": 40 } }
+  "functions": { "api/*.ts": { "maxDuration": 40 } },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Permissions-Policy", "value": "geolocation=(self)" }
+      ]
+    }
+  ]
 }

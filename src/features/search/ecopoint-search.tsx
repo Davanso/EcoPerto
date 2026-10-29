@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { LoaderCircle, LocateFixed, Search, Scan } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -7,6 +7,11 @@ import { PILOT_LOCATION, type Coordinates } from '@/domain/types/location'
 import { PlaceSearch } from '@/features/location/place-search'
 import { ResultsList } from '@/features/ecopoints/results-list'
 import { useEcopointSearch } from './use-ecopoint-search'
+import {
+  readLocationAccess,
+  LOCATION_ACCESS_MESSAGES,
+  type LocationAccess,
+} from '@/features/location/location-access'
 
 const EcopointMap = lazy(() => import('@/components/map/ecopoint-map'))
 
@@ -30,6 +35,17 @@ export function EcopointSearch() {
   const [selectedId, setSelectedId] = useState<string>()
   const [fitVersion, setFitVersion] = useState(0)
   const [recenterVersion, setRecenterVersion] = useState(0)
+  const [locationAccess, setLocationAccess] =
+    useState<LocationAccess>('unknown')
+  useEffect(() => {
+    let active = true
+    void readLocationAccess().then((access) => {
+      if (active) setLocationAccess(access)
+    })
+    return () => {
+      active = false
+    }
+  }, [status])
   const onViewportChange = useCallback((point: Coordinates) => {
     viewport.current = point
   }, [])
@@ -61,7 +77,7 @@ export function EcopointSearch() {
               ? 'Posição obtida. O marcador azul “Você” indica sua localização aproximada.'
               : status === 'locating'
                 ? 'Aguardando a posição do dispositivo…'
-                : 'Sua posição ainda não foi obtida. Buscar uma cidade não ativa a localização do dispositivo.'}
+                : LOCATION_ACCESS_MESSAGES[locationAccess]}
           </p>
           <PlaceSearch
             onSelect={(place) =>
