@@ -1,7 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildQuery, searchEcopoints } from './client'
 
 const center = { latitude: -23.55052, longitude: -46.633308 }
+let time = 0
+beforeEach(() => {
+  vi.spyOn(Date, 'now').mockReturnValue((time += 120000))
+})
 afterEach(() => vi.unstubAllGlobals())
 
 describe('Overpass client', () => {
@@ -10,7 +14,7 @@ describe('Overpass client', () => {
     expect(() => buildQuery({ latitude: NaN, longitude: 0 })).toThrow()
     expect(() => buildQuery({ latitude: 0, longitude: 181 })).toThrow()
   })
-  it('posts one bounded query and normalizes its response', async () => {
+  it('sends one bounded query and normalizes its response', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(new Response(JSON.stringify({ elements: [] })))
@@ -19,11 +23,13 @@ describe('Overpass client', () => {
       [],
     )
     expect(fetchMock).toHaveBeenCalledOnce()
-    expect(fetchMock.mock.calls[0][1].method).toBe('POST')
-    expect(fetchMock.mock.calls[0][1].body.get('data')).toBe(buildQuery(center))
+    expect(fetchMock.mock.calls[0][0].searchParams.get('data')).toBe(
+      buildQuery(center),
+    )
   })
   it.each([
     [429, 'muitas consultas'],
+    [406, 'muitas consultas'],
     [504, 'temporariamente indisponível'],
   ])('handles HTTP %s without retrying', async (status, message) => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('', { status }))
@@ -32,6 +38,12 @@ describe('Overpass client', () => {
       searchEcopoints(center, new AbortController().signal),
     ).rejects.toThrow(message)
     expect(fetchMock).toHaveBeenCalledOnce()
+    if (status === 429 || status === 406) {
+      await expect(
+        searchEcopoints(center, new AbortController().signal),
+      ).rejects.toThrow('Aguarde um minuto')
+      expect(fetchMock).toHaveBeenCalledOnce()
+    }
   })
   it('handles network and malformed response failures', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('network')))

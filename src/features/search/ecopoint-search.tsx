@@ -162,11 +162,11 @@ export function EcopointSearch() {
         </a>
         . Confirme materiais e horários antes de sair.{' '}
         <a
-          href="https://overpass.private.coffee/#privacy-policy"
+          href="https://dev.overpass-api.de/overpass-doc/en/preface/commons.html"
           target="_blank"
           rel="noreferrer"
         >
-          Privacidade do serviço Overpass
+          Sobre o serviço Overpass
         </a>
         .{' '}
         <a

@@ -4,8 +4,8 @@ import { normalizeOverpass } from './normalize'
 
 export const SEARCH_RADIUS_METERS = 5000
 const ENDPOINT =
-  import.meta.env.VITE_OVERPASS_URL ||
-  'https://overpass.private.coffee/api/interpreter'
+  import.meta.env.VITE_OVERPASS_URL || 'https://overpass-api.de/api/interpreter'
+let blockedUntil = 0
 
 export function buildQuery(center: Coordinates): string {
   if (!isCoordinates(center))
@@ -19,12 +19,15 @@ export async function searchEcopoints(
   signal: AbortSignal,
 ): Promise<Ecopoint[]> {
   const query = buildQuery(center)
+  signal.throwIfAborted()
+  if (Date.now() < blockedUntil)
+    throw new Error('Aguarde um minuto antes de consultar o serviço novamente.')
+  const url = new URL(ENDPOINT)
+  url.searchParams.set('data', query)
   const timeout = AbortSignal.timeout(35000)
   let response: Response
   try {
-    response = await fetch(ENDPOINT, {
-      method: 'POST',
-      body: new URLSearchParams({ data: query }),
+    response = await fetch(url, {
       signal: AbortSignal.any([signal, timeout]),
     })
   } catch (error) {
@@ -37,10 +40,12 @@ export async function searchEcopoints(
       'Não foi possível conectar ao serviço. Verifique sua conexão e tente novamente.',
     )
   }
-  if (response.status === 429)
+  if (response.status === 429 || response.status === 406) {
+    blockedUntil = Date.now() + 60000
     throw new Error(
       'O serviço está recebendo muitas consultas. Aguarde um minuto antes de tentar novamente.',
     )
+  }
   if (!response.ok)
     throw new Error(
       'O serviço de pontos de coleta está temporariamente indisponível. Tente novamente mais tarde.',
