@@ -1,17 +1,12 @@
 import { useState } from 'react'
-import {
-  Circle,
-  CircleMarker,
-  MapContainer,
-  Popup,
-  TileLayer,
-} from 'react-leaflet'
+import { Circle, MapContainer, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Ecopoint } from '@/domain/types/ecopoint'
 import type { Coordinates, UserLocation } from '@/domain/types/location'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { MapController } from './map-controller'
 import { PointMarker } from './point-marker'
+import { UserLocationMarker } from './user-location-marker'
 
 type Props = {
   focus: Coordinates
@@ -21,6 +16,7 @@ type Props = {
   points: Ecopoint[]
   selectedId?: string
   fitVersion: number
+  recenterVersion: number
   onSelect: (id: string) => void
   onViewportChange: (center: Coordinates) => void
 }
@@ -33,6 +29,7 @@ export default function EcopointMap({
   points,
   selectedId,
   fitVersion,
+  recenterVersion,
   onSelect,
   onViewportChange,
 }: Props) {
@@ -59,7 +56,9 @@ export default function EcopointMap({
         <MapController
           focus={focus}
           points={points}
+          userLocation={userLocation}
           fitVersion={fitVersion}
+          recenterVersion={recenterVersion}
           onViewportChange={onViewportChange}
         />
         <TileLayer
@@ -78,31 +77,7 @@ export default function EcopointMap({
           }}
           interactive={false}
         />
-        {userLocation && (
-          <>
-            <Circle
-              center={[userLocation.latitude, userLocation.longitude]}
-              radius={userLocation.accuracyMeters}
-              pathOptions={{ color: '#2563eb', weight: 1, fillOpacity: 0.08 }}
-              interactive={false}
-            />
-            <CircleMarker
-              center={[userLocation.latitude, userLocation.longitude]}
-              radius={8}
-              pathOptions={{
-                color: '#fff',
-                fillColor: '#2563eb',
-                fillOpacity: 1,
-                weight: 3,
-              }}
-            >
-              <Popup>
-                Sua localização aproximada (incerteza de até{' '}
-                {Math.ceil(userLocation.accuracyMeters)} m)
-              </Popup>
-            </CircleMarker>
-          </>
-        )}
+        {userLocation && <UserLocationMarker location={userLocation} />}
         {points.map((point, index) => (
           <PointMarker
             key={point.id}
@@ -120,7 +95,9 @@ export default function EcopointMap({
         </span>
         <span className="legend-item">
           <span className="legend-user" aria-hidden="true" />
-          Sua localização
+          {userLocation
+            ? 'Você (posição aproximada)'
+            : 'Localização ainda não obtida'}
         </span>
         <span>Área tracejada: {radius / 1000} km da última busca</span>
       </p>

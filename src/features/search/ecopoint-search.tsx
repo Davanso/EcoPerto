@@ -29,6 +29,7 @@ export function EcopointSearch() {
   const [radius, setRadius] = useState(5000)
   const [selectedId, setSelectedId] = useState<string>()
   const [fitVersion, setFitVersion] = useState(0)
+  const [recenterVersion, setRecenterVersion] = useState(0)
   const onViewportChange = useCallback((point: Coordinates) => {
     viewport.current = point
   }, [])
@@ -55,6 +56,13 @@ export function EcopointSearch() {
               ? 'Obtendo localização…'
               : 'Usar minha localização'}
           </Button>
+          <p className="location-status" role="status">
+            {userLocation
+              ? 'Posição obtida. O marcador azul “Você” indica sua localização aproximada.'
+              : status === 'locating'
+                ? 'Aguardando a posição do dispositivo…'
+                : 'Sua posição ainda não foi obtida. Buscar uma cidade não ativa a localização do dispositivo.'}
+          </p>
           <PlaceSearch
             onSelect={(place) =>
               void search(
@@ -120,6 +128,18 @@ export function EcopointSearch() {
         <div className="map-toolbar">
           <p>Mova o mapa e busque na área desejada.</p>
           <div className="flex flex-wrap gap-2">
+            {userLocation && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSelectedId(undefined)
+                  setRecenterVersion((value) => value + 1)
+                }}
+              >
+                <LocateFixed data-icon="inline-start" aria-hidden="true" />
+                Centralizar em mim
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => setFitVersion((value) => value + 1)}
@@ -187,6 +207,7 @@ export function EcopointSearch() {
             onSelect={setSelectedId}
             onViewportChange={onViewportChange}
             fitVersion={fitVersion}
+            recenterVersion={recenterVersion}
           />
         </Suspense>
         <p className="search-source">
