@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUpRight, Leaf, MapPin, Recycle } from 'lucide-react'
+import { ArrowUpRight, MapPin, Recycle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -9,41 +9,6 @@ import { MATERIALS } from '@/domain/types/ecopoint'
 export default function App() {
   return (
     <AppShell>
-      <section className="intro" aria-labelledby="intro-title">
-        <div className="flex flex-col items-start gap-6">
-          <Badge variant="secondary">
-            <Leaf aria-hidden="true" /> Descarte consciente, mais perto
-          </Badge>
-          <h1 id="intro-title">
-            O que sobra pode ter um <em>novo caminho.</em>
-          </h1>
-          <p className="intro-description">
-            Encontre o lugar certo para seus resíduos. Explore o mapa e consulte
-            pontos de coleta cadastrados na sua região.
-          </p>
-          <Button asChild size="lg">
-            <a href="#explorar">
-              Conheça a busca{' '}
-              <ArrowDown data-icon="inline-end" aria-hidden="true" />
-            </a>
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            Sem cadastro. Com informação sobre onde descartar.
-          </p>
-        </div>
-        <div className="cycle-panel" aria-label="Do descarte ao recomeço">
-          <div className="cycle-orbit" aria-hidden="true">
-            <Recycle />
-          </div>
-          <span className="cycle-label">Separar. Encaminhar. Recomeçar.</span>
-          <p>
-            Um pequeno gesto.
-            <br />
-            <strong>Um caminho melhor.</strong>
-          </p>
-        </div>
-      </section>
-
       <section
         id="explorar"
         className="explore-section"
@@ -52,9 +17,9 @@ export default function App() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">Pontos de coleta</p>
-            <h2 id="explore-title">O destino certo começa perto.</h2>
+            <h1 id="explore-title">Seu descarte tem um lugar certo.</h1>
           </div>
-          <Badge variant="outline">Mapa em versão inicial</Badge>
+          <Badge variant="outline">Sem cadastro</Badge>
         </div>
         <EcopointSearch />
       </section>

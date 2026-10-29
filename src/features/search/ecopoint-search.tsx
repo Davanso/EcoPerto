@@ -1,14 +1,11 @@
-import { lazy, Suspense, useCallback, useRef } from 'react'
-import { LoaderCircle, LocateFixed, Search } from 'lucide-react'
+import { lazy, Suspense, useCallback, useRef, useState } from 'react'
+import { LoaderCircle, LocateFixed, Search, Scan } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from '@/components/ui/empty'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { PILOT_LOCATION, type Coordinates } from '@/domain/types/location'
+import { PlaceSearch } from '@/features/location/place-search'
+import { ResultsList } from '@/features/ecopoints/results-list'
 import { useEcopointSearch } from './use-ecopoint-search'
 
 const EcopointMap = lazy(() => import('@/components/map/ecopoint-map'))
@@ -18,57 +15,161 @@ export function EcopointSearch() {
     status,
     points,
     error,
+    errorKind,
     focus,
-    queryCenter,
+    center,
+    radius: resultRadius,
+    label,
+    result,
     userLocation,
     search,
     cancel,
   } = useEcopointSearch()
   const viewport = useRef<Coordinates>(PILOT_LOCATION)
-  const onViewportChange = useCallback((center: Coordinates) => {
-    viewport.current = center
+  const [radius, setRadius] = useState(5000)
+  const [selectedId, setSelectedId] = useState<string>()
+  const [fitVersion, setFitVersion] = useState(0)
+  const onViewportChange = useCallback((point: Coordinates) => {
+    viewport.current = point
   }, [])
   const busy = status === 'loading' || status === 'locating'
+  const selectPoint = (id: string) => {
+    setSelectedId(id)
+    document
+      .getElementById('ecopoint-map')
+      ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="search-preview">
-        <div className="search-options">
-          <h3>Por onde vamos começar?</h3>
-          <p>
-            Use sua localização ou mova o mapa e busque na área que você
-            escolher. O raio de pesquisa é de 5 km a partir do centro do mapa.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Button size="lg" disabled={busy} onClick={() => void search()}>
-              <LocateFixed data-icon="inline-start" aria-hidden="true" /> Usar
-              minha localização
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              disabled={busy}
-              onClick={() => void search(viewport.current)}
+    <div className="map-workspace">
+      <aside className="map-sidebar" aria-label="Busca e pontos de coleta">
+        <div className="map-search-controls">
+          <h2>Onde você quer descartar?</h2>
+          <Button
+            size="lg"
+            disabled={status === 'locating'}
+            onClick={() => void search(undefined, radius)}
+          >
+            <LocateFixed data-icon="inline-start" aria-hidden="true" />
+            {status === 'locating'
+              ? 'Obtendo localização…'
+              : 'Usar minha localização'}
+          </Button>
+          <PlaceSearch
+            onSelect={(place) =>
+              void search(
+                place,
+                radius,
+                place.name.split(',').slice(0, 2).join(','),
+              )
+            }
+          />
+          <Field orientation="horizontal">
+            <FieldLabel htmlFor="search-radius">Raio de busca</FieldLabel>
+            <select
+              id="search-radius"
+              value={radius}
+              onChange={(event) => setRadius(Number(event.target.value))}
             >
-              <Search data-icon="inline-start" aria-hidden="true" /> Buscar
-              nesta área
-            </Button>
-            {busy && (
-              <Button variant="ghost" onClick={cancel}>
-                Cancelar busca
-              </Button>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            O mapa começa no centro de São Paulo (SP), nossa região piloto. Isso
-            não representa sua localização.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Ao buscar, a área consultada é enviada à Overpass. O mapa usa
-            serviços do OpenStreetMap. Sua localização é aproximada e não é
-            salva em histórico.
+              <option value="5000">5 km</option>
+              <option value="10000">10 km</option>
+              <option value="20000">20 km</option>
+            </select>
+          </Field>
+          <p className="location-privacy">
+            Localização só com sua permissão, sem histórico salvo. Cidade e área
+            consultadas são enviadas aos serviços de mapas.
           </p>
         </div>
+        <div className="results-heading">
+          <h3>
+            {points.length}{' '}
+            {points.length === 1 ? 'ponto de coleta' : 'pontos de coleta'}
+          </h3>
+          <p>
+            {label} · até {resultRadius / 1000} km
+          </p>
+        </div>
+        <ResultsList
+          points={points}
+          selectedId={selectedId}
+          onSelect={selectPoint}
+        />
+        {!points.length && !busy && (
+          <div className="no-results">
+            <strong>Nenhum ponto cadastrado nesta busca.</strong>
+            <p>
+              A cobertura pode ser incompleta. Aumente o raio ou escolha outra
+              área.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const next = Math.min(resultRadius * 2, 20000)
+                setRadius(next)
+                void search(center, next, label)
+              }}
+              disabled={resultRadius >= 20000}
+            >
+              Ampliar busca
+            </Button>
+          </div>
+        )}
+      </aside>
+      <div className="map-main">
+        <div className="map-toolbar">
+          <p>Mova o mapa e busque na área desejada.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setFitVersion((value) => value + 1)}
+            >
+              <Scan data-icon="inline-start" aria-hidden="true" />
+              Ver todos
+            </Button>
+            <Button onClick={() => void search(viewport.current, radius)}>
+              <Search data-icon="inline-start" aria-hidden="true" />
+              Buscar nesta área
+            </Button>
+          </div>
+        </div>
+        <div role="status" aria-live="polite" className="map-progress">
+          {busy ? (
+            <>
+              <LoaderCircle
+                className="size-4 animate-spin"
+                aria-hidden="true"
+              />
+              <span>
+                {status === 'locating'
+                  ? 'Autorize a localização no navegador. Se não responder, você pode buscar por cidade.'
+                  : 'Atualizando pontos de coleta… Os resultados anteriores continuam disponíveis.'}
+              </span>
+              <Button size="sm" variant="ghost" onClick={cancel}>
+                Cancelar
+              </Button>
+            </>
+          ) : (
+            <span>
+              {result.freshness === 'official'
+                ? `Dados municipais de Indaiatuba. Fontes consultadas em ${new Date(`${result.fetchedAt}T12:00:00`).toLocaleDateString('pt-BR')}.`
+                : result.freshness === 'stale'
+                  ? 'Exibindo a última consulta salva: o serviço não respondeu à atualização.'
+                  : 'Selecione um ponto no mapa ou na lista para ver detalhes.'}
+            </span>
+          )}
+        </div>
+        {result.warning && <p className="map-progress">{result.warning}</p>}
+        {error && (
+          <Alert variant={errorKind === 'location' ? 'default' : 'destructive'}>
+            <AlertTitle>
+              {errorKind === 'location'
+                ? 'Não conseguimos localizar este dispositivo'
+                : 'Não foi possível atualizar os pontos'}
+            </AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <Suspense
           fallback={
             <div className="map-loading" role="status">
@@ -78,106 +179,37 @@ export function EcopointSearch() {
         >
           <EcopointMap
             focus={focus}
-            queryCenter={queryCenter}
+            queryCenter={center}
+            radius={resultRadius}
             userLocation={userLocation}
             points={points}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
             onViewportChange={onViewportChange}
+            fitVersion={fitVersion}
           />
         </Suspense>
+        <p className="search-source">
+          Pontos municipais:{' '}
+          <a
+            href="https://www.indaiatuba.sp.gov.br/urbanismo/coleta-seletiva/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Prefeitura de Indaiatuba
+          </a>
+          . Mapa e dados colaborativos:{' '}
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer"
+          >
+            © OpenStreetMap contributors
+          </a>{' '}
+          · Localidades: Nominatim. Confirme os materiais e horários antes do
+          descarte. Distâncias em linha reta.
+        </p>
       </div>
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="search-status"
-      >
-        {busy && (
-          <p className="flex items-center gap-2">
-            <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-            {status === 'locating'
-              ? 'Aguardando a localização do dispositivo…'
-              : 'Consultando pontos de coleta em até 5 km…'}
-          </p>
-        )}
-        {status === 'idle' && (
-          <p>
-            Escolha uma área e inicie a busca. Mover o mapa não faz consultas
-            automaticamente.
-          </p>
-        )}
-        {status === 'success' && points.length > 0 && (
-          <p>
-            <strong>
-              {points.length}{' '}
-              {points.length === 1 ? 'ponto encontrado' : 'pontos encontrados'}
-            </strong>{' '}
-            na última área consultada. Selecione um marcador para ver
-            informações. Mover o mapa não atualiza esses resultados.
-          </p>
-        )}
-      </div>
-      {status === 'error' && (
-        <Alert variant="destructive">
-          <AlertTitle>Não foi possível concluir a busca</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      {status === 'success' && points.length === 0 && (
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>
-              Nenhum ponto cadastrado foi encontrado nesta busca.
-            </EmptyTitle>
-            <EmptyDescription>
-              Isso não significa que não existam ecopontos na região. Mova o
-              mapa para consultar outra área. A cobertura do OpenStreetMap varia
-              por localidade.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      )}
-      {points.length > 0 && (
-        <details className="search-accessible-results">
-          <summary>Consultar nomes e fontes dos pontos encontrados</summary>
-          <ul>
-            {points.map((point) => (
-              <li key={point.id}>
-                <a href={point.sourceUrl} target="_blank" rel="noreferrer">
-                  {point.name}
-                </a>
-                {point.address && <span> — {point.address}</span>}
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-      <p className="search-source">
-        Dados colaborativos:{' '}
-        <a
-          href="https://www.openstreetmap.org/copyright"
-          target="_blank"
-          rel="noreferrer"
-        >
-          © OpenStreetMap contributors
-        </a>
-        . Confirme materiais e horários antes de sair.{' '}
-        <a
-          href="https://dev.overpass-api.de/overpass-doc/en/preface/commons.html"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Sobre o serviço Overpass
-        </a>
-        .{' '}
-        <a
-          href="https://www.openstreetmap.org/fixthemap"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Informar um problema no mapa
-        </a>
-        .
-      </p>
     </div>
   )
 }

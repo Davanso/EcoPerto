@@ -1,75 +1,49 @@
-import { useEffect, useState } from 'react'
-import { divIcon } from 'leaflet'
+import { useState } from 'react'
 import {
   Circle,
   CircleMarker,
   MapContainer,
-  Marker,
   Popup,
   TileLayer,
-  useMap,
-  useMapEvents,
 } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Ecopoint } from '@/domain/types/ecopoint'
-import { MATERIALS } from '@/domain/types/ecopoint'
 import type { Coordinates, UserLocation } from '@/domain/types/location'
-import { SEARCH_RADIUS_METERS } from '@/services/overpass/client'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-
-const pointIcon = divIcon({
-  className: 'ecopoint-marker',
-  html: '<span aria-hidden="true">♻</span>',
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-  popupAnchor: [0, -16],
-})
+import { MapController } from './map-controller'
+import { PointMarker } from './point-marker'
 
 type Props = {
   focus: Coordinates
-  queryCenter?: Coordinates
+  queryCenter: Coordinates
+  radius: number
   userLocation?: UserLocation
   points: Ecopoint[]
+  selectedId?: string
+  fitVersion: number
+  onSelect: (id: string) => void
   onViewportChange: (center: Coordinates) => void
-}
-
-function MapControls({
-  focus,
-  onViewportChange,
-}: Pick<Props, 'focus' | 'onViewportChange'>) {
-  const map = useMap()
-  useMapEvents({
-    moveend: () => {
-      const center = map.getCenter().wrap()
-      onViewportChange({ latitude: center.lat, longitude: center.lng })
-    },
-  })
-  useEffect(() => {
-    map.setView([focus.latitude, focus.longitude], 13)
-  }, [focus, map])
-  useEffect(() => {
-    const observer = new ResizeObserver(() => map.invalidateSize())
-    observer.observe(map.getContainer())
-    return () => observer.disconnect()
-  }, [map])
-  return null
 }
 
 export default function EcopointMap({
   focus,
   queryCenter,
+  radius,
   userLocation,
   points,
+  selectedId,
+  fitVersion,
+  onSelect,
   onViewportChange,
 }: Props) {
   const [tileError, setTileError] = useState(false)
   return (
-    <div className="ecopoint-map-wrapper">
+    <div className="ecopoint-map-wrapper" id="ecopoint-map">
       {tileError && (
         <Alert>
           <AlertDescription>
-            O mapa de fundo não pôde ser carregado por completo. Verifique sua
-            conexão. Os resultados da busca continuam disponíveis abaixo.
+            Algumas imagens do mapa não carregaram. Os pontos e a lista
+            continuam disponíveis.
           </AlertDescription>
         </Alert>
       )}
@@ -82,25 +56,28 @@ export default function EcopointMap({
         className="ecopoint-map"
         aria-label="Mapa de pontos de coleta"
       >
-        <MapControls focus={focus} onViewportChange={onViewportChange} />
+        <MapController
+          focus={focus}
+          points={points}
+          fitVersion={fitVersion}
+          onViewportChange={onViewportChange}
+        />
         <TileLayer
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           eventHandlers={{ tileerror: () => setTileError(true) }}
         />
-        {queryCenter && (
-          <Circle
-            center={[queryCenter.latitude, queryCenter.longitude]}
-            radius={SEARCH_RADIUS_METERS}
-            pathOptions={{
-              color: '#175b49',
-              fillOpacity: 0.035,
-              weight: 1,
-              dashArray: '6 6',
-            }}
-            interactive={false}
-          />
-        )}
+        <Circle
+          center={[queryCenter.latitude, queryCenter.longitude]}
+          radius={radius}
+          pathOptions={{
+            color: '#187b51',
+            fillOpacity: 0.025,
+            weight: 1.5,
+            dashArray: '6 6',
+          }}
+          interactive={false}
+        />
         {userLocation && (
           <>
             <Circle
@@ -111,57 +88,41 @@ export default function EcopointMap({
             />
             <CircleMarker
               center={[userLocation.latitude, userLocation.longitude]}
-              radius={7}
+              radius={8}
               pathOptions={{
                 color: '#fff',
                 fillColor: '#2563eb',
                 fillOpacity: 1,
-                weight: 2,
+                weight: 3,
               }}
             >
-              <Popup>Sua localização aproximada</Popup>
+              <Popup>
+                Sua localização aproximada (incerteza de até{' '}
+                {Math.ceil(userLocation.accuracyMeters)} m)
+              </Popup>
             </CircleMarker>
           </>
         )}
-        {points.map((point) => (
-          <Marker
+        {points.map((point, index) => (
+          <PointMarker
             key={point.id}
-            position={[point.latitude, point.longitude]}
-            icon={pointIcon}
-            title={point.name}
-            alt={`Ponto de coleta: ${point.name}`}
-          >
-            <Popup>
-              <div className="ecopoint-popup">
-                <strong>{point.name}</strong>
-                <p>{point.address || 'Endereço não informado.'}</p>
-                <p>
-                  <strong>Materiais:</strong>{' '}
-                  {point.acceptedMaterials
-                    ?.map((material) => MATERIALS[material])
-                    .join(', ') || 'Não informados.'}
-                </p>
-                <p>
-                  <strong>Horários:</strong>{' '}
-                  {point.openingHours || 'Não informados.'}
-                </p>
-                <a href={point.sourceUrl} target="_blank" rel="noreferrer">
-                  Consultar fonte no OpenStreetMap
-                </a>
-              </div>
-            </Popup>
-          </Marker>
+            point={point}
+            number={index + 1}
+            selected={point.id === selectedId}
+            onSelect={onSelect}
+          />
         ))}
       </MapContainer>
       <p className="map-legend">
         <span className="legend-item">
-          <span className="legend-point" aria-hidden="true" /> Ponto de coleta
+          <span className="legend-point" aria-hidden="true" />
+          Pontos de coleta
         </span>
         <span className="legend-item">
-          <span className="legend-user" aria-hidden="true" /> Sua localização
-          aproximada
+          <span className="legend-user" aria-hidden="true" />
+          Sua localização
         </span>
-        <span>Área tracejada: raio de 5 km</span>
+        <span>Área tracejada: {radius / 1000} km da última busca</span>
       </p>
     </div>
   )
