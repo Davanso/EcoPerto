@@ -4,7 +4,8 @@ import { normalizeOverpass } from './normalize'
 
 export const SEARCH_RADIUS_METERS = 5000
 const ENDPOINT =
-  import.meta.env.VITE_OVERPASS_URL || 'https://overpass-api.de/api/interpreter'
+  import.meta.env.VITE_OVERPASS_URL ||
+  'https://overpass.private.coffee/api/interpreter'
 
 export function buildQuery(center: Coordinates): string {
   if (!isCoordinates(center))

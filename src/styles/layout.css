@@ -45,14 +45,22 @@ a:focus-visible {
 }
 .skip-link {
   position: fixed;
-  top: -100px;
+  top: 1rem;
   left: 1rem;
   z-index: 10;
-  padding: 1rem;
+  padding: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
   background: var(--background);
 }
 .skip-link:focus {
-  top: 1rem;
+  padding: 1rem;
+  width: auto;
+  height: auto;
+  clip-path: none;
 }
 .site-header {
   display: flex;
@@ -197,6 +205,104 @@ h2 {
   border-radius: 0;
   background: var(--muted);
   min-height: 330px;
+}
+
+.ecopoint-map-wrapper {
+  min-width: 0;
+  background: var(--muted);
+}
+.ecopoint-map {
+  height: 430px;
+  width: 100%;
+  z-index: 0;
+  font-family: inherit;
+}
+.ecopoint-marker {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 7px #183d3440;
+  font-size: 23px;
+}
+.ecopoint-marker:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}
+.ecopoint-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 180px;
+  max-width: 260px;
+  overflow-wrap: anywhere;
+}
+.ecopoint-popup p {
+  margin: 0;
+}
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+}
+.legend-point,
+.legend-user {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+.legend-user {
+  background: #2563eb;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.map-loading {
+  min-height: 430px;
+  display: grid;
+  place-items: center;
+  background: var(--muted);
+}
+.search-status,
+.search-source {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+.search-source {
+  font-size: 0.75rem;
+}
+.search-source a,
+.search-accessible-results a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.search-accessible-results {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+}
+.search-accessible-results summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.search-accessible-results ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  max-height: 280px;
+  overflow-y: auto;
 }
 .materials-section {
   padding-bottom: 4rem;
