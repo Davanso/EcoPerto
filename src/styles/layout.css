@@ -217,7 +217,7 @@ h2 {
   z-index: 0;
   font-family: inherit;
 }
-.ecopoint-marker {
+.ecopoint-map .ecopoint-marker {
   display: grid;
   place-items: center;
   border-radius: 50%;
