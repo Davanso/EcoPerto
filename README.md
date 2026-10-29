@@ -8,7 +8,7 @@
 
 Tecnologia e educação ambiental para conectar pessoas aos pontos de coleta da sua região.
 
-React · TypeScript · Vite · Tailwind CSS · shadcn/ui
+React · TypeScript · Vite · Tailwind CSS · shadcn/ui · Leaflet
 
 [O projeto](docs/contexto.md) · [Guia de desenvolvimento](docs/desenvolvimento.md)
 
@@ -20,11 +20,11 @@ React · TypeScript · Vite · Tailwind CSS · shadcn/ui
 
 O EcoPerto está sendo desenvolvido para ajudar você a encontrar ecopontos, consultar os materiais aceitos e descobrir onde descartar com consciência — sem precisar de cadastro.
 
-**Agora:** estrutura inicial pronta, com layout responsivo e componentes básicos.
+**Agora:** mapa interativo, localização sob consentimento e busca de pontos de coleta em um raio de 5 km. Você também pode mover o mapa para pesquisar sem compartilhar sua localização.
 
-**A seguir:** mapa interativo, geolocalização e busca de pontos reais com OpenStreetMap e Overpass.
+**A seguir:** lista integrada ao mapa, distâncias, filtros por material e pesquisa por localidade.
 
-> A busca ainda está em desenvolvimento. Nenhuma localização é solicitada ou armazenada nesta etapa.
+> Versão inicial com dados colaborativos do OpenStreetMap. A cobertura e a disponibilidade dos serviços podem variar. A localização é solicitada somente por ação do usuário e não é salva em histórico.
 
 ### 🚀 Rodar localmente
 
@@ -43,6 +43,7 @@ Abra o endereço exibido no terminal. Não é necessário configurar credenciais
 | ----------------- | -------------------------------- |
 | `npm run build`   | Verifica os tipos e gera o build |
 | `npm run lint`    | Analisa a qualidade do código    |
+| `npm test`        | Executa os testes automatizados  |
 | `npm run format`  | Formata os arquivos              |
 | `npm run preview` | Abre uma prévia do build         |
 

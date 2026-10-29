@@ -501,12 +501,12 @@ A aplicação deverá tratar falhas dos serviços externos sem comprometer a nav
 
 ### Fase 2 — Prova de conceito geográfica
 
-- [ ] Integrar Leaflet.
-- [ ] Exibir mapa OpenStreetMap.
-- [ ] Implementar solicitação de geolocalização.
-- [ ] Consultar pontos de reciclagem via Overpass.
-- [ ] Exibir marcadores no mapa.
-- [ ] Validar a cobertura dos dados em uma região piloto.
+- [x] Integrar Leaflet.
+- [x] Exibir mapa OpenStreetMap.
+- [x] Implementar solicitação de geolocalização.
+- [x] Consultar pontos de reciclagem via Overpass.
+- [x] Exibir marcadores no mapa.
+- [x] Validar a cobertura dos dados em uma região piloto.
 
 **Entrega:** mapa funcional com pontos reais consultados.
 
@@ -764,6 +764,6 @@ UNIVERSIDADE SÃO FRANCISCO. **Procedimentos para a curricularização da Extens
 
 ---
 
-**Status:** fase 1 concluída — estrutura inicial executável.
+**Status:** fases 1 e 2 implementadas — prova de conceito geográfica, com disponibilidade externa variável.
 
-**Próxima etapa:** fase 2 — implementar a prova de conceito com Leaflet, geolocalização e Overpass API.
+**Próxima etapa:** fase 3 — experiência principal com lista, distâncias, filtros, detalhes e busca por localidade.
