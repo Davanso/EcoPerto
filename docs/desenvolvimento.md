@@ -21,7 +21,7 @@ O Vite serve a interface e as APIs locais. `npm run preview` também inclui as A
 
 ## Fluxo do mapa
 
-O mapa abre em **Indaiatuba (SP)**, região escolhida para validação. Isso não representa a localização do visitante. Quatro ecopontos municipais verificados nas fontes públicas aparecem imediatamente. A atualização colaborativa é solicitada em segundo plano; mover o mapa não dispara consultas. A base é cinza, os pontos são numerados e a seleção funciona pela lista e pelo mapa.
+O mapa abre em **Indaiatuba (SP)**, região escolhida para validação. Isso não representa a localização do visitante. Quatro ecopontos municipais verificados nas fontes públicas aparecem imediatamente. A consulta da API é solicitada em segundo plano; mover o mapa não dispara consultas. A API prioriza o catálogo municipal onde há registros e não consulta a Overpass nesses casos. A base é cinza, os pontos são numerados e a seleção funciona pela lista e pelo mapa.
 
 Pesquisa por cidade/bairro, raio de 5/10/20 km, distâncias em linha reta, lista ordenada, detalhes, atribuição e link para rota externa estão disponíveis. Materiais ainda não possuem filtro interativo.
 
@@ -33,15 +33,19 @@ Apenas o clique em “Usar minha localização” solicita permissão. A primeir
 
 O navegador precisa disponibilizar a API, um contexto seguro e acesso à localização do sistema. Não é possível obrigar um navegador interno a fornecer coordenadas. Neste ambiente o navegador interno expirou sem posição; a obtenção física de GPS não foi comprovada. Os caminhos de sucesso, recusa, cancelamento e ausência de callback são testados automaticamente; a busca real por cidade foi validada no navegador.
 
+A interface lê o estado da permissão sem solicitar coordenadas e distingue bloqueio por política de um contexto incorporado, permissão negada, navegador sem suporte e página sem HTTPS. `Permissions-Policy: geolocation=(self)` permite a funcionalidade na própria origem, sem conceder permissão pelo usuário ou remover bloqueios do sistema/ancestral incorporador. Trocar o provedor de mapas não substitui a API de geolocalização do navegador.
+
 Coordenadas do dispositivo são arredondadas a três casas decimais, com 100 m adicionados à incerteza exibida. O marcador azul “Você” usa uma camada acima dos ecopontos; o enquadramento de resultados inclui a posição obtida. “Centralizar em mim” reenquadra sem uma nova consulta de localização. Sem coordenadas, a interface informa “posição ainda não obtida”; pesquisar uma cidade não cria uma posição pessoal.
 
 Não há histórico, cookies ou localStorage de localização. Área e consulta de cidade são enviadas à API do EcoPerto e aos provedores externos; os tiles também revelam a região visualizada. O cache de respostas no servidor é temporário, sem banco de dados; isso não elimina logs de infraestrutura externa.
 
 ## APIs
 
-- `GET /api/ecopoints?lat=...&lon=...&radius=5000`: entrada validada, consultas limitadas a 5/10/20 km e arredondadas a três casas. Overpass principal e Private.coffee são tentadas sequencialmente, sem retry contínuo. Cada instância tem prazo de 14 s; falhas a pausam por um minuto. Requisições iguais em andamento são compartilhadas. Cache de três minutos, até 100 áreas; resultados anteriores de até uma hora podem ser usados com indicação de desatualização.
+- `GET /api/ecopoints?lat=...&lon=...&radius=5000`: entrada validada, raio de 5/10/20 km. Retorna `{ points, freshness, fetchedAt }` com o modelo interno, sem depender do formato Overpass no navegador. Registros municipais na área são servidos com HTTP 200 e `freshness: official`, sem chamadas externas. Isso é cobertura cadastral disponível, não afirmação de que não existem outros pontos.
+- Nas áreas sem catálogo municipal, Overpass principal e Private.coffee são tentadas sequencialmente, sem retry contínuo. Cada instância tem prazo de 14 s; falhas a pausam por um minuto. Requisições iguais em andamento são compartilhadas. Cache de três minutos, até 100 áreas; resultados anteriores de até uma hora podem ser usados com indicação de desatualização. Um outage sem dados anteriores ainda é um erro explícito, não uma lista vazia fictícia.
 - `GET /api/places?q=...`: Nominatim somente mediante envio do formulário, sem autocomplete. Cache de até 100 consultas e limite de uma requisição por 1,1 s por processo. Resultados repetidos de localidades são removidos.
 - Ambos usam identificação `EcoPerto` e link do repositório no User-Agent. O cliente pode cancelar sua operação sem derrubar uma consulta compartilhada do servidor.
+- Falhas conhecidas têm código, ID de requisição e status adequado: 429 para limite, 502 para resposta inválida, 503 para provedor indisponível e 504 para timeout de localidades. Falhas internas inesperadas são 500. `Retry-After` orienta nova tentativa quando aplicável. Logs registram evento, host do provedor, status/tipo e correlação; não registram a cidade pesquisada, coordenadas ou URLs com credenciais.
 
 As APIs locais e as funções em `api/` da Vercel usam o mesmo código de `server/`. Para trocar provedores, copie `.env.example` para `.env.local`, configure `OVERPASS_URL` e/ou `NOMINATIM_URL` e reinicie o Vite. Na Vercel, configure as variáveis no projeto. Não usar o antigo `VITE_OVERPASS_URL`.
 
@@ -68,10 +72,12 @@ src/services/places/         cliente da pesquisa de localidades
 
 ## Validação e publicação
 
-Em 29/10/2026, os 32 testes passam, assim como build, lint e formatação. Testes incluem falhas dos provedores, cache, troca de instância, deduplicação de requisições, raio, preservação de resultados, StrictMode, GPS concedido/negado simulado, cancelamento e ausência de callback. Regressões da câmera verificam inclusão da posição do usuário nos limites, atualizações de resultados e centralização sem nova consulta.
+Em 29/10/2026, os 43 testes passam, assim como build, lint e formatação. Testes incluem falhas dos provedores, cache, troca de instância, deduplicação de requisições, raio, preservação de resultados, StrictMode, GPS concedido/negado simulado, cancelamento e ausência de callback. Regressões da câmera verificam inclusão da posição do usuário nos limites, atualizações de resultados e centralização sem nova consulta. Testes HTTP reais com o handler Node validam contrato, 200 municipal, 400/405, códigos, `Retry-After`, correlação e não exposição de erros internos.
 
 Rotas internas ainda não estão integradas; proposta em [rotas-no-app.md](rotas-no-app.md). A navegação externa permanece disponível.
 
 No navegador real: pesquisa por Indaiatuba, seleção do João Pioli, detalhes, link de rota, quatro marcadores e filtro cinza da base foram conferidos. Viewport de 390 px sem overflow horizontal. Overpass permaneceu indisponível durante parte da validação; a fonte municipal permaneceu utilizável. Nenhuma fixture de teste é usada como dado do produto.
 
-CI executa instalação, formatação, lint, testes e build. Para Vercel: preset Vite, instalação `npm ci`, build `npm run build`, saída `dist/`, funções em `api/` com duração configurada em `vercel.json`. Deploy ainda não realizado. A auditoria de dependências de produção não aponta vulnerabilidades; permanecem três avisos de baixa severidade na CLI de desenvolvimento shadcn.
+CI executa instalação, formatação, lint, testes e build. Para Vercel: preset Vite, instalação `npm ci`, build `npm run build`, saída `dist/`, funções em `api/` com duração configurada em `vercel.json`. Para conferir uma implantação pública, execute `npm run check:deployment -- https://eco-perto.vercel.app`: verifica HTTP e conteúdo de ecopontos/Indaiatuba e pesquisa de cidade. Não é monitoramento agendado e não testa a posição física de GPS.
+
+Na investigação do primeiro deploy, ecopontos retornou 503 da própria aplicação por indisponibilidade da Overpass; localidades retornou 200. A prévia da correção retornou 200 nas duas APIs. O projeto permanece sem Google conforme decisão do usuário: uma eventual migração precisaria avaliar faturamento, requisitos de mapa/atribuição e preservar fontes municipais confiáveis. A auditoria de dependências de produção não aponta vulnerabilidades; permanecem três avisos de baixa severidade na CLI de desenvolvimento shadcn.
