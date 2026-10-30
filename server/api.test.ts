@@ -99,3 +99,59 @@ it('does not mislabel programming errors as 503 or expose internal error message
   expect(body.code).toBe('INTERNAL_ERROR')
   expect(body.error).not.toContain('private')
 })
+
+it('accepts private route coordinates only in a bounded POST body and never enables caching', async () => {
+  const calculateRoute = vi.fn().mockResolvedValue({
+    coordinates: [
+      [-47.218, -23.09],
+      [-47.208, -23.107],
+    ],
+    distanceMeters: 2800,
+    durationSeconds: 480,
+  })
+  const base = await start(
+    createApiHandler({
+      searchPoints: vi.fn(),
+      searchPlaces: vi.fn(),
+      calculateRoute,
+    }),
+  )
+  const input = {
+    origin: { latitude: -23.09, longitude: -47.218 },
+    destination: { latitude: -23.107, longitude: -47.208 },
+  }
+  const response = await fetch(`${base}/api/routes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  expect(response.status).toBe(200)
+  expect(response.headers.get('Cache-Control')).toBe('no-store')
+  expect(response.headers.get('X-Request-Id')).toBeTruthy()
+  expect(await response.json()).toMatchObject({ distanceMeters: 2800 })
+  expect(calculateRoute).toHaveBeenCalledExactlyOnceWith(
+    input,
+    expect.any(AbortSignal),
+  )
+  expect((await fetch(`${base}/api/routes`)).status).toBe(405)
+  expect(
+    (await fetch(`${base}/api/routes`, { method: 'POST', body: '{' })).status,
+  ).toBe(400)
+  expect(
+    (
+      await fetch(`${base}/api/routes`, {
+        method: 'POST',
+        body: JSON.stringify({ origin: input.origin }),
+      })
+    ).status,
+  ).toBe(400)
+  expect(
+    (
+      await fetch(`${base}/api/routes`, {
+        method: 'POST',
+        body: ' '.repeat(5000),
+      })
+    ).status,
+  ).toBe(413)
+  expect(calculateRoute).toHaveBeenCalledOnce()
+})

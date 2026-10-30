@@ -23,7 +23,7 @@ const localApi = {
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  for (const key of ['OVERPASS_URL', 'NOMINATIM_URL'])
+  for (const key of ['OVERPASS_URL', 'NOMINATIM_URL', 'ORS_API_KEY'])
     if (env[key] && !process.env[key]) process.env[key] = env[key]
   return {
     plugins: [react(), tailwindcss(), localApi],

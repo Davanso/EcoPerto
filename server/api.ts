@@ -5,10 +5,13 @@ import { ApiError } from './errors.ts'
 import { randomUUID } from 'node:crypto'
 import { createPlaceService } from './places.ts'
 import { isCoordinates } from '../src/domain/types/location.ts'
+import { isRouteRequest } from '../src/domain/types/route.ts'
+import { createRouteService } from './routes.ts'
 
 type Services = {
   searchPoints: ReturnType<typeof createEcopointService>
   searchPlaces: ReturnType<typeof createPlaceService>
+  calculateRoute?: ReturnType<typeof createRouteService>
 }
 
 export function createApiHandler(
@@ -17,20 +20,70 @@ export function createApiHandler(
     searchPlaces: createPlaceService(),
   },
 ) {
+  const routeService = services.calculateRoute ?? createRouteService()
   return async function handleApi(req: IncomingMessage, res: ServerResponse) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.setHeader('Cache-Control', 'no-store')
     const requestId = randomUUID()
     res.setHeader('X-Request-Id', requestId)
-    if (req.method !== 'GET') {
+    const url = new URL(req.url || '/', 'http://localhost')
+    const method = url.pathname === '/api/routes' ? 'POST' : 'GET'
+    if (req.method !== method) {
       res
-        .writeHead(405, { Allow: 'GET' })
+        .writeHead(405, { Allow: method })
         .end(JSON.stringify({ error: 'Método não permitido.' }))
       return
     }
-    const url = new URL(req.url || '/', 'http://localhost')
     try {
-      if (url.pathname === '/api/ecopoints') {
+      if (url.pathname === '/api/routes') {
+        let raw = ''
+        let bytes = 0
+        for await (const chunk of req) {
+          bytes += Buffer.byteLength(chunk)
+          if (bytes <= 4096) raw += chunk.toString()
+        }
+        if (bytes > 4096)
+          throw new ApiError(
+            413,
+            'ROUTE_BODY_TOO_LARGE',
+            'Solicitação de rota muito grande.',
+          )
+        let input: unknown
+        try {
+          input = JSON.parse(raw)
+        } catch {
+          throw new ApiError(
+            400,
+            'INVALID_ROUTE',
+            'Informe uma origem e um destino válidos.',
+          )
+        }
+        if (!isRouteRequest(input))
+          throw new ApiError(
+            400,
+            'INVALID_ROUTE',
+            'Informe uma origem e um destino válidos.',
+          )
+        const controller = new AbortController()
+        const abort = () => {
+          if (!res.writableEnded) controller.abort()
+        }
+        res.on('close', abort)
+        try {
+          const started = Date.now()
+          const route = await routeService(input, controller.signal)
+          console.info(
+            JSON.stringify({
+              event: 'route_success',
+              requestId,
+              elapsedMs: Date.now() - started,
+            }),
+          )
+          res.end(JSON.stringify(route))
+        } finally {
+          res.off('close', abort)
+        }
+      } else if (url.pathname === '/api/ecopoints') {
         const latitude = url.searchParams.get('lat')
         const longitude = url.searchParams.get('lon')
         const center = {
@@ -84,6 +137,7 @@ export function createApiHandler(
           .end(JSON.stringify({ error: 'Recurso não encontrado.' }))
       }
     } catch (error) {
+      if (req.aborted || res.destroyed) return
       const known = error instanceof ApiError
       console.error(
         JSON.stringify({
