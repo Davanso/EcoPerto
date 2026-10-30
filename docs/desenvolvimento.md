@@ -74,7 +74,7 @@ src/services/places/         cliente da pesquisa de localidades
 
 Em 29/10/2026, os 46 testes passam, assim como build, lint e formatação. Testes incluem falhas dos provedores, cache, troca de instância, deduplicação de requisições, raio, preservação de resultados, StrictMode, GPS concedido/negado simulado, cancelamento e ausência de callback. Regressões da câmera verificam inclusão da posição do usuário nos limites, atualizações de resultados e centralização sem nova consulta. Testes HTTP reais com o handler Node validam contrato, 200 municipal, 400/405, códigos, `Retry-After`, correlação e não exposição de erros internos.
 
-Rotas internas ainda não estão integradas; proposta em [rotas-no-app.md](rotas-no-app.md). A navegação externa permanece disponível.
+Rotas internas de carro implementadas e aprovadas: [rotas-no-app.md](rotas-no-app.md). Origem pelo dispositivo ou endereço, linha viária, distância/duração e navegação externa.
 
 No navegador real: pesquisa por Indaiatuba, seleção do João Pioli, detalhes, link de rota, quatro marcadores e filtro cinza da base foram conferidos. Viewport de 390 px sem overflow horizontal. Overpass permaneceu indisponível durante parte da validação; a fonte municipal permaneceu utilizável. Nenhuma fixture de teste é usada como dado do produto.
 
