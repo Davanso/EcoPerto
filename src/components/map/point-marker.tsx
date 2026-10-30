@@ -50,7 +50,10 @@ export function PointMarker({
           <button
             className="popup-route-button"
             type="button"
-            onClick={() => onRoute(point.id)}
+            onClick={() => {
+              marker.current?.closePopup()
+              onRoute(point.id)
+            }}
           >
             Traçar rota no app
           </button>
