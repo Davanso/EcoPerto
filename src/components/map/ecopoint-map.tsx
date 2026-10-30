@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { LoaderCircle } from 'lucide-react'
 import { Circle, MapContainer, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Ecopoint } from '@/domain/types/ecopoint'
@@ -9,6 +10,8 @@ import { PointMarker } from './point-marker'
 import { UserLocationMarker } from './user-location-marker'
 
 type Props = {
+  loading?: boolean
+  onCancel?: () => void
   focus: Coordinates
   queryCenter: Coordinates
   radius: number
@@ -22,6 +25,8 @@ type Props = {
 }
 
 export default function EcopointMap({
+  loading = false,
+  onCancel,
   focus,
   queryCenter,
   radius,
@@ -35,7 +40,17 @@ export default function EcopointMap({
 }: Props) {
   const [tileError, setTileError] = useState(false)
   return (
-    <div className="ecopoint-map-wrapper" id="ecopoint-map">
+    <div className="ecopoint-map-wrapper" id="ecopoint-map" aria-busy={loading}>
+      {loading && (
+        <div className="map-search-overlay" role="status" aria-live="polite">
+          <LoaderCircle className="size-8 animate-spin" aria-hidden="true" />
+          <strong>Buscando pontos de coleta…</strong>
+          <span>Consultando os dados desta área.</span>
+          <button type="button" onClick={onCancel}>
+            Cancelar busca
+          </button>
+        </div>
+      )}
       {tileError && (
         <Alert>
           <AlertDescription>

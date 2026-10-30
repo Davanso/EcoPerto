@@ -208,8 +208,31 @@ h2 {
 }
 
 .ecopoint-map-wrapper {
+  position: relative;
   min-width: 0;
   background: var(--muted);
+}
+.map-search-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgb(244 247 245 / 90%);
+  backdrop-filter: blur(3px);
+  color: #164e36;
+  text-align: center;
+  padding: 24px;
+}
+.map-search-overlay button {
+  cursor: pointer;
+  padding: 8px 16px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 .ecopoint-map {
   height: 580px;

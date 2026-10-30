@@ -214,6 +214,8 @@ export function EcopointSearch() {
           }
         >
           <EcopointMap
+            loading={status === 'loading'}
+            onCancel={cancel}
             focus={focus}
             queryCenter={center}
             radius={resultRadius}
