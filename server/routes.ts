@@ -6,6 +6,7 @@ import {
 } from '../src/domain/types/route.ts'
 import { distanceMeters } from '../src/domain/rules/distance.ts'
 import { ApiError } from './errors.ts'
+import { readProviderResponse, serverSecret } from './provider-response.ts'
 
 export function createRouteService(fetcher: typeof fetch = fetch) {
   let active = 0
@@ -25,7 +26,7 @@ export function createRouteService(fetcher: typeof fetch = fetch) {
         'ROUTE_TOO_LONG',
         'Escolha uma origem a até 100 km do ecoponto.',
       )
-    const key = process.env.ORS_API_KEY
+    const key = serverSecret(process.env.ORS_API_KEY)
     if (!key)
       throw new ApiError(
         503,
@@ -65,7 +66,27 @@ export function createRouteService(fetcher: typeof fetch = fetch) {
           ]),
         },
       )
-      if (response.status === 429)
+      const upstream = await readProviderResponse(response, 'openrouteservice')
+      const body = upstream.data as
+        | {
+            error?: { code?: number; message?: string } | string
+            features?: Array<{
+              geometry?: { type?: string; coordinates?: unknown }
+              properties?: {
+                summary?: { distance?: number; duration?: number }
+              }
+            }>
+          }
+        | undefined
+      const quota =
+        response.status === 429 ||
+        (response.status === 403 &&
+          /quota|rate.?limit|daily limit/i.test(
+            typeof body?.error === 'string'
+              ? body.error
+              : (body?.error?.message ?? ''),
+          ))
+      if (quota)
         throw new ApiError(
           429,
           'ROUTING_QUOTA',
@@ -75,23 +96,20 @@ export function createRouteService(fetcher: typeof fetch = fetch) {
       if (response.status === 401 || response.status === 403)
         throw new ApiError(
           503,
-          'ROUTING_UNAVAILABLE',
-          'O serviço de rotas não está disponível. Abra a navegação externa ou tente mais tarde.',
+          'ROUTING_AUTH_FAILED',
+          'O serviço de rotas precisa de uma revisão de configuração. Você pode abrir a navegação em outro app.',
         )
-      const body = (await response.json().catch(() => {
+      if (!body)
         throw new ApiError(
-          502,
-          'INVALID_ROUTE_RESPONSE',
-          'O serviço retornou uma rota inválida. Tente novamente.',
+          503,
+          'ROUTING_UNAVAILABLE',
+          'O provedor de rotas retornou uma resposta indisponível. Tente mais tarde ou abra em outro app.',
         )
-      })) as {
-        error?: { code?: number }
-        features?: Array<{
-          geometry?: { type?: string; coordinates?: unknown }
-          properties?: { summary?: { distance?: number; duration?: number } }
-        }>
-      }
-      if ([2009, 2010].includes(body?.error?.code ?? -1))
+      if (
+        [2009, 2010].includes(
+          typeof body.error === 'object' ? (body.error?.code ?? -1) : -1,
+        )
+      )
         throw new ApiError(
           404,
           'ROUTE_NOT_FOUND',
@@ -109,12 +127,32 @@ export function createRouteService(fetcher: typeof fetch = fetch) {
         distanceMeters: feature?.properties?.summary?.distance,
         durationSeconds: feature?.properties?.summary?.duration,
       }
-      if (feature?.geometry?.type !== 'LineString' || !isDrivingRoute(route))
+      if (feature?.geometry?.type !== 'LineString' || !isDrivingRoute(route)) {
+        console.warn(
+          JSON.stringify({
+            event: 'routing_schema_failure',
+            provider: 'openrouteservice',
+            status: response.status,
+            featureCount: Array.isArray(body.features)
+              ? body.features.length
+              : 0,
+            geometryType:
+              feature?.geometry?.type === 'LineString' ? 'LineString' : 'other',
+            coordinateDimensions:
+              Array.isArray(route.coordinates) &&
+              Array.isArray(route.coordinates[0])
+                ? route.coordinates[0].length
+                : 0,
+            distanceType: typeof route.distanceMeters,
+            durationType: typeof route.durationSeconds,
+          }),
+        )
         throw new ApiError(
           502,
           'INVALID_ROUTE_RESPONSE',
           'O serviço retornou uma rota inválida. Tente novamente.',
         )
+      }
       return route
     } catch (error) {
       if (error instanceof ApiError) throw error

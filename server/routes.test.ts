@@ -84,7 +84,7 @@ it('never fabricates a straight line for absent, malformed or partial routes', a
 it('returns typed quota and provider errors without leaking the key or upstream response', async () => {
   for (const [status, expected] of [
     [429, 'ROUTING_QUOTA'],
-    [403, 'ROUTING_UNAVAILABLE'],
+    [403, 'ROUTING_AUTH_FAILED'],
     [500, 'ROUTING_UNAVAILABLE'],
   ] as const) {
     const service = createRouteService(

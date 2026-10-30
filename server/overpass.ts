@@ -4,6 +4,7 @@ import {
   type Coordinates,
 } from '../src/domain/types/location.ts'
 import { ApiError } from './errors.ts'
+import { readProviderResponse, serverSecret } from './provider-response.ts'
 
 const DEFAULT_ENDPOINTS = ['https://overpass.private.coffee/api/interpreter']
 export const RADII = [5000, 10000, 20000] as const
@@ -46,12 +47,11 @@ export function createOverpassService(fetcher: typeof fetch = fetch) {
       )
 
     const task = (async (): Promise<OverpassResult> => {
-      const endpoints = process.env.OVERPASS_URL
+      const configuredEndpoint = serverSecret(process.env.OVERPASS_URL)
+      const endpoints = configuredEndpoint
         ? [
-            process.env.OVERPASS_URL,
-            ...DEFAULT_ENDPOINTS.filter(
-              (url) => url !== process.env.OVERPASS_URL,
-            ),
+            configuredEndpoint,
+            ...DEFAULT_ENDPOINTS.filter((url) => url !== configuredEndpoint),
           ]
         : DEFAULT_ENDPOINTS
       for (const endpoint of endpoints) {
@@ -73,7 +73,8 @@ export function createOverpassService(fetcher: typeof fetch = fetch) {
             },
             signal: AbortSignal.timeout(25000),
           })
-          if (!response.ok) {
+          const { data } = await readProviderResponse(response, provider)
+          if (!response.ok || data === undefined) {
             console.warn(
               JSON.stringify({
                 event: 'overpass_failure',
@@ -86,7 +87,6 @@ export function createOverpassService(fetcher: typeof fetch = fetch) {
             paused.set(endpoint, Date.now() + 60000)
             continue
           }
-          const data: unknown = await response.json()
           normalizeOverpass(data) // Never cache partial or malformed responses.
           const entry = { data, fetchedAt: new Date().toISOString() }
           console.info(
