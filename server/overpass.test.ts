@@ -1,8 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildQuery, createOverpassService } from './overpass.ts'
 
 const center = { latitude: -23.55, longitude: -46.63 }
 const good = () => new Response(JSON.stringify({ elements: [] }))
+beforeEach(() =>
+  vi.stubEnv('OVERPASS_URL', 'https://test.example/api/interpreter'),
+)
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllEnvs()
@@ -28,6 +31,10 @@ describe('Overpass gateway', () => {
     expect(await search(center)).toMatchObject({ freshness: 'cache' })
     expect(fetcher).toHaveBeenCalledTimes(2)
     expect(fetcher.mock.calls[1][1].headers['User-Agent']).toContain('EcoPerto')
+    expect(fetcher.mock.calls[0][1].method).toBe('POST')
+    expect(fetcher.mock.calls[0][1].body.get('data')).toContain(
+      '[maxsize:16777216]',
+    )
   })
   it('deduplicates simultaneous requests to the same area', async () => {
     let complete!: (value: Response) => void
@@ -64,7 +71,7 @@ describe('Overpass gateway', () => {
       .mockImplementation(async () => new Response('', { status: 429 }))
     const search = createOverpassService(fetcher)
     await search(center)
-    vi.advanceTimersByTime(180001)
+    vi.advanceTimersByTime(3600001)
     expect(await search(center)).toMatchObject({ freshness: 'stale' })
     expect(fetcher).toHaveBeenCalledTimes(3)
     expect(await search(center)).toMatchObject({ freshness: 'stale' })

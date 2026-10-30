@@ -49,7 +49,22 @@ export function createApiHandler(
             .end(JSON.stringify({ error: 'Coordenadas ou raio inválidos.' }))
           return
         }
-        res.end(JSON.stringify(await services.searchPoints(center, radius)))
+        const started = Date.now()
+        const result = await services.searchPoints(center, radius)
+        res.setHeader(
+          'Cache-Control',
+          'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400',
+        )
+        console.info(
+          JSON.stringify({
+            event: 'ecopoints_success',
+            requestId,
+            elapsedMs: Date.now() - started,
+            count: result.points.length,
+            freshness: result.freshness,
+          }),
+        )
+        res.end(JSON.stringify(result))
       } else if (url.pathname === '/api/places') {
         const query = url.searchParams.get('q')?.trim() || ''
         if (query.length < 3 || query.length > 120) {

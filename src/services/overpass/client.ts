@@ -40,7 +40,7 @@ async function searchRemote(
     lon: center.longitude.toFixed(3),
     radius: String(radius),
   })
-  const timeout = AbortSignal.timeout(32000)
+  const timeout = AbortSignal.timeout(55000)
   let response: Response
   try {
     response = await fetch(`/api/ecopoints?${params}`, {
@@ -60,11 +60,17 @@ async function searchRemote(
   } catch {
     throw new Error('O serviço retornou uma resposta inválida.')
   }
-  if (!response.ok)
+  if (!response.ok) {
+    console.error('ecopoints_request_failed', {
+      status: response.status,
+      code: payload?.code,
+      requestId: response.headers.get('X-Request-Id'),
+    })
     throw new Error(
       payload?.error ||
         'O serviço de coleta está temporariamente indisponível.',
     )
+  }
   if (
     !payload ||
     !['live', 'cache', 'stale', 'official'].includes(payload.freshness) ||
