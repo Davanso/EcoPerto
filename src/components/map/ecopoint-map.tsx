@@ -70,6 +70,8 @@ export default function EcopointMap({
       >
         <MapController
           focus={focus}
+          queryCenter={queryCenter}
+          radius={radius}
           points={points}
           userLocation={userLocation}
           fitVersion={fitVersion}
@@ -114,7 +116,7 @@ export default function EcopointMap({
             ? 'Você (posição aproximada)'
             : 'Localização ainda não obtida'}
         </span>
-        <span>Área tracejada: {radius / 1000} km da última busca</span>
+        <span>Área tracejada: raio selecionado de {radius / 1000} km</span>
       </p>
     </div>
   )

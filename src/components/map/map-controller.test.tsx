@@ -104,3 +104,21 @@ it('moves to a newly searched region while the old results are still loading', (
     animate: false,
   })
 })
+
+it('expands the camera bounds with the selected radius even when points do not change', () => {
+  const props = {
+    focus,
+    points,
+    fitVersion: 0,
+    recenterVersion: 0,
+    onViewportChange: vi.fn(),
+  }
+  const view = render(<MapController {...props} radius={5000} />)
+  const small = camera.fitBounds.mock.calls.at(-1)![0]
+  view.rerender(<MapController {...props} radius={20000} />)
+  const large = camera.fitBounds.mock.calls.at(-1)![0]
+  expect(large.getNorth() - large.getSouth()).toBeGreaterThan(
+    (small.getNorth() - small.getSouth()) * 3,
+  )
+  expect(large.contains(small)).toBe(true)
+})

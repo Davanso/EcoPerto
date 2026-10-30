@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
-import { latLngBounds } from 'leaflet'
+import { latLng, latLngBounds } from 'leaflet'
 import { useMap, useMapEvents } from 'react-leaflet'
 import type { Coordinates, UserLocation } from '@/domain/types/location'
 import type { Ecopoint } from '@/domain/types/ecopoint'
 
 export function MapController({
   focus,
+  queryCenter = focus,
+  radius = 5000,
   points,
   userLocation,
   fitVersion,
@@ -13,6 +15,8 @@ export function MapController({
   onViewportChange,
 }: {
   focus: Coordinates
+  queryCenter?: Coordinates
+  radius?: number
   points: Ecopoint[]
   userLocation?: UserLocation
   fitVersion: number
@@ -56,14 +60,35 @@ export function MapController({
     ) {
       map.setView([focus.latitude, focus.longitude], 13, { animate: false })
     } else if (positions.length) {
-      map.fitBounds(latLngBounds(positions), {
+      const bounds = latLng(
+        queryCenter.latitude,
+        queryCenter.longitude,
+      ).toBounds(radius * 2)
+      bounds.extend(latLngBounds(positions))
+      map.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 15,
         animate: false,
       })
+    } else {
+      map.fitBounds(
+        latLng(queryCenter.latitude, queryCenter.longitude).toBounds(
+          radius * 2,
+        ),
+        { padding: [40, 40], maxZoom: 15, animate: false },
+      )
     }
     previous.current = { focus, points, fitVersion, recenterVersion }
-  }, [focus, points, userLocation, fitVersion, recenterVersion, map])
+  }, [
+    focus,
+    queryCenter,
+    radius,
+    points,
+    userLocation,
+    fitVersion,
+    recenterVersion,
+    map,
+  ])
   useEffect(() => {
     const observer = new ResizeObserver(() => map.invalidateSize())
     observer.observe(map.getContainer())

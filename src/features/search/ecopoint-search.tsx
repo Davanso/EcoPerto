@@ -93,7 +93,13 @@ export function EcopointSearch() {
             <select
               id="search-radius"
               value={radius}
-              onChange={(event) => setRadius(Number(event.target.value))}
+              disabled={busy}
+              onChange={(event) => {
+                const nextRadius = Number(event.target.value)
+                setRadius(nextRadius)
+                setSelectedId(undefined)
+                void search(center, nextRadius, label)
+              }}
             >
               <option value="5000">5 km</option>
               <option value="10000">10 km</option>
@@ -218,7 +224,7 @@ export function EcopointSearch() {
             onCancel={cancel}
             focus={focus}
             queryCenter={center}
-            radius={resultRadius}
+            radius={radius}
             userLocation={userLocation}
             points={points}
             selectedId={selectedId}
