@@ -5,6 +5,7 @@ import {
   LoaderCircle,
   LocateFixed,
   Navigation,
+  ExternalLink,
   Route,
   X,
 } from 'lucide-react'
@@ -112,7 +113,7 @@ export function RoutePlanner({
             rel="noreferrer"
           >
             <Navigation aria-hidden="true" />
-            Navegar ↗
+            Navegar <ExternalLink aria-hidden="true" className="size-3.5" />
           </a>
         ) : (
           <Button
@@ -147,7 +148,8 @@ export function RoutePlanner({
             target="_blank"
             rel="noreferrer"
           >
-            Abrir em outro app ↗
+            Abrir em outro app{' '}
+            <ExternalLink aria-hidden="true" className="size-3.5" />
           </a>
         )}
       </div>

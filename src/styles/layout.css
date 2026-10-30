@@ -450,6 +450,9 @@ h2 {
   gap: 8px;
 }
 .route-external {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.75rem;
   text-decoration: underline;
   text-underline-offset: 3px;
