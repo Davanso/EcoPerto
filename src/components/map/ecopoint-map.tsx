@@ -64,7 +64,10 @@ export default function EcopointMap({
         zoom={13}
         minZoom={3}
         maxZoom={19}
-        scrollWheelZoom={false}
+        scrollWheelZoom
+        dragging
+        doubleClickZoom
+        touchZoom
         className="ecopoint-map"
         aria-label="Mapa de pontos de coleta"
       >
