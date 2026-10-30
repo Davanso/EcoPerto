@@ -8,6 +8,7 @@ export function MapController({
   focus,
   queryCenter = focus,
   radius = 5000,
+  routeActive = false,
   points,
   userLocation,
   fitVersion,
@@ -17,6 +18,7 @@ export function MapController({
   focus: Coordinates
   queryCenter?: Coordinates
   radius?: number
+  routeActive?: boolean
   points: Ecopoint[]
   userLocation?: UserLocation
   fitVersion: number
@@ -52,6 +54,8 @@ export function MapController({
       map.setView([userLocation.latitude, userLocation.longitude], 16, {
         animate: false,
       })
+    } else if (routeActive) {
+      // The route layer owns the camera while a route is displayed.
     } else if (
       last &&
       focus !== last.focus &&
@@ -83,6 +87,7 @@ export function MapController({
     focus,
     queryCenter,
     radius,
+    routeActive,
     points,
     userLocation,
     fitVersion,

@@ -265,6 +265,11 @@ h2 {
 }
 .ecopoint-marker-body > span {
   transform: rotate(45deg);
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
 }
 .ecopoint-marker:hover .ecopoint-marker-body {
   background: #095e3b;
@@ -301,6 +306,282 @@ h2 {
 }
 .ecopoint-popup p {
   margin: 0;
+}
+.popup-details summary {
+  cursor: pointer;
+  padding-block: 6px;
+  color: var(--primary);
+  font-size: 0.75rem;
+}
+.popup-details > div {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+}
+.popup-details summary:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.route-planner {
+  padding: 16px 20px;
+  border-block: 1px solid var(--border);
+  background: #f5f9f7;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.route-topline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+  min-width: 0;
+}
+.route-planner-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: #185941;
+}
+.route-planner-heading > svg {
+  flex-shrink: 0;
+  width: 22px;
+}
+.route-planner-heading > div {
+  min-width: 0;
+}
+.route-planner-heading h3 {
+  font-size: 0.7rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+}
+.route-planner-heading p {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.route-summary {
+  display: grid;
+  gap: 1px;
+  text-align: right;
+  flex-shrink: 0;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
+  white-space: nowrap;
+}
+.route-summary strong {
+  color: #185941;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+.route-summary span {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+.route-options {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+.route-options > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  min-height: 44px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  list-style: none;
+}
+.route-options > summary::-webkit-details-marker {
+  display: none;
+}
+.route-options > summary > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.route-edit-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  flex-shrink: 0;
+  font-weight: 650;
+}
+.route-edit-label svg {
+  width: 14px;
+  height: 14px;
+}
+.route-options[open] .route-edit-label svg {
+  transform: rotate(180deg);
+}
+.route-options-content {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+.route-options-content > button {
+  justify-self: start;
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
+  min-height: 40px;
+}
+.route-privacy,
+.route-origin {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+.route-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.route-external {
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding-block: 8px;
+}
+.route-navigate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  font-weight: 650;
+  min-height: 44px;
+}
+.route-navigate svg {
+  width: 16px;
+  height: 16px;
+}
+.route-footnote {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 0.65rem;
+  color: var(--muted-foreground);
+}
+.route-footnote details {
+  flex: 1;
+  min-width: 140px;
+}
+.route-footnote summary {
+  cursor: pointer;
+  padding-block: 5px;
+}
+.route-footnote p {
+  max-width: 55ch;
+  line-height: 1.6;
+  padding-block: 6px;
+}
+.route-footnote > a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.route-error {
+  font-size: 0.8rem;
+  color: #9a3412;
+  line-height: 1.5;
+}
+.ecopoint-marker.is-origin .ecopoint-marker-body {
+  background: #2563eb;
+}
+.ecopoint-marker.is-origin:hover .ecopoint-marker-body {
+  background: #1d4ed8;
+  box-shadow:
+    0 0 0 5px #2563eb26,
+    -3px 5px 12px #102e3550;
+}
+.route-options summary:focus-visible,
+.route-footnote summary:focus-visible,
+.route-navigate:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.map-progress.is-quiet {
+  display: none;
+}
+.map-data-details {
+  padding: 10px 16px;
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+}
+.map-data-details > summary {
+  cursor: pointer;
+  padding-block: 6px;
+}
+.map-data-details .search-source {
+  padding-top: 8px;
+}
+.search-privacy {
+  font-size: 0.7rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+.search-privacy summary {
+  cursor: pointer;
+  padding-block: 6px;
+}
+.search-privacy p {
+  padding-top: 6px;
+}
+@media (max-width: 650px) {
+  .route-planner {
+    padding: 14px;
+    gap: 10px;
+  }
+  .map-search-controls {
+    gap: 10px;
+  }
+  .route-topline {
+    gap: 10px;
+  }
+  .route-actions > button:first-child,
+  .route-navigate {
+    flex: 1;
+    min-height: 44px;
+  }
+  .route-actions > button {
+    min-height: 44px;
+  }
+  .route-footnote summary {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+}
+.popup-route-button {
+  cursor: pointer;
+  background: var(--primary);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 650;
+}
+.popup-route-button:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
 }
 .map-legend {
   display: flex;

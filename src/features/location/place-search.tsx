@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,9 +7,16 @@ import { searchPlaces, type Place } from '@/services/places/client'
 
 export function PlaceSearch({
   onSelect,
+  label = 'Cidade ou bairro',
+  placeholder = 'Ex.: Campinas, SP',
+  description = 'Sem precisar liberar sua localização.',
 }: {
   onSelect: (place: Place) => void
+  label?: string
+  placeholder?: string
+  description?: string
 }) {
+  const inputId = useId()
   const [query, setQuery] = useState('')
   const [places, setPlaces] = useState<Place[]>([])
   const [busy, setBusy] = useState(false)
@@ -47,11 +54,11 @@ export function PlaceSearch({
     <div className="place-search">
       <form onSubmit={submit}>
         <Field>
-          <FieldLabel htmlFor="place-query">Cidade ou bairro</FieldLabel>
+          <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
           <div className="flex gap-2">
             <Input
-              id="place-query"
-              placeholder="Ex.: Campinas, SP"
+              id={inputId}
+              placeholder={placeholder}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value)
@@ -67,14 +74,12 @@ export function PlaceSearch({
               type="submit"
               size="icon-lg"
               disabled={busy}
-              aria-label="Buscar cidade ou bairro"
+              aria-label={`Buscar ${label.toLowerCase()}`}
             >
               <Search aria-hidden="true" />
             </Button>
           </div>
-          <FieldDescription>
-            Sem precisar liberar sua localização.
-          </FieldDescription>
+          {description && <FieldDescription>{description}</FieldDescription>}
         </Field>
       </form>
       <p role="status" className="text-sm text-muted-foreground">

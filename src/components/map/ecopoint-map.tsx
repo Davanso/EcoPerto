@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { MapController } from './map-controller'
 import { PointMarker } from './point-marker'
 import { UserLocationMarker } from './user-location-marker'
+import { RouteLayer } from './route-layer'
+import type { PlannedRoute } from '@/features/routes/use-route-planner'
 
 type Props = {
   loading?: boolean
@@ -16,6 +18,8 @@ type Props = {
   queryCenter: Coordinates
   radius: number
   userLocation?: UserLocation
+  route?: PlannedRoute
+  onRoute: (id: string) => void
   points: Ecopoint[]
   selectedId?: string
   fitVersion: number
@@ -31,6 +35,8 @@ export default function EcopointMap({
   queryCenter,
   radius,
   userLocation,
+  route,
+  onRoute,
   points,
   selectedId,
   fitVersion,
@@ -77,6 +83,7 @@ export default function EcopointMap({
           radius={radius}
           points={points}
           userLocation={userLocation}
+          routeActive={!!route}
           fitVersion={fitVersion}
           recenterVersion={recenterVersion}
           onViewportChange={onViewportChange}
@@ -98,6 +105,7 @@ export default function EcopointMap({
           interactive={false}
         />
         {userLocation && <UserLocationMarker location={userLocation} />}
+        {route && <RouteLayer route={route} fitVersion={fitVersion} />}
         {points.map((point, index) => (
           <PointMarker
             key={point.id}
@@ -105,6 +113,7 @@ export default function EcopointMap({
             number={index + 1}
             selected={point.id === selectedId}
             onSelect={onSelect}
+            onRoute={onRoute}
           />
         ))}
       </MapContainer>

@@ -122,3 +122,18 @@ it('expands the camera bounds with the selected radius even when points do not c
   )
   expect(large.contains(small)).toBe(true)
 })
+
+it('leaves route framing to the route layer when ecopoint results refresh', () => {
+  const props = {
+    focus,
+    points,
+    fitVersion: 0,
+    recenterVersion: 0,
+    onViewportChange: vi.fn(),
+    routeActive: true,
+  }
+  const view = render(<MapController {...props} />)
+  view.rerender(<MapController {...props} points={[...points]} />)
+  expect(camera.fitBounds).not.toHaveBeenCalled()
+  expect(camera.setView).not.toHaveBeenCalled()
+})

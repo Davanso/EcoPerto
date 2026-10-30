@@ -6,6 +6,8 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { PILOT_LOCATION, type Coordinates } from '@/domain/types/location'
 import { PlaceSearch } from '@/features/location/place-search'
 import { ResultsList } from '@/features/ecopoints/results-list'
+import { RoutePlanner } from '@/features/routes/route-planner'
+import { useRoutePlanner } from '@/features/routes/use-route-planner'
 import { useEcopointSearch } from './use-ecopoint-search'
 import {
   readLocationAccess,
@@ -33,6 +35,9 @@ export function EcopointSearch() {
   const viewport = useRef<Coordinates>(PILOT_LOCATION)
   const [radius, setRadius] = useState(5000)
   const [selectedId, setSelectedId] = useState<string>()
+  const selectedPoint = points.find((point) => point.id === selectedId)
+  const routePlanner = useRoutePlanner(selectedPoint, userLocation)
+  const visibleLocation = userLocation ?? routePlanner.deviceLocation
   const [fitVersion, setFitVersion] = useState(0)
   const [recenterVersion, setRecenterVersion] = useState(0)
   const [locationAccess, setLocationAccess] =
@@ -72,14 +77,21 @@ export function EcopointSearch() {
               ? 'Obtendo localização…'
               : 'Usar minha localização'}
           </Button>
-          <p className="location-status" role="status">
-            {userLocation
-              ? 'Posição obtida. O marcador azul “Você” indica sua localização aproximada.'
-              : status === 'locating'
-                ? 'Aguardando a posição do dispositivo…'
-                : LOCATION_ACCESS_MESSAGES[locationAccess]}
-          </p>
+          {(visibleLocation ||
+            status === 'locating' ||
+            ['denied', 'policy-blocked', 'unsupported', 'insecure'].includes(
+              locationAccess,
+            )) && (
+            <p className="location-status" role="status">
+              {visibleLocation
+                ? 'Posição obtida. O marcador azul “Você” indica sua localização aproximada.'
+                : status === 'locating'
+                  ? 'Aguardando a posição do dispositivo…'
+                  : LOCATION_ACCESS_MESSAGES[locationAccess]}
+            </p>
+          )}
           <PlaceSearch
+            description=""
             onSelect={(place) =>
               void search(
                 place,
@@ -106,10 +118,13 @@ export function EcopointSearch() {
               <option value="20000">20 km</option>
             </select>
           </Field>
-          <p className="location-privacy">
-            Localização só com sua permissão, sem histórico salvo. Cidade e área
-            consultadas são enviadas aos serviços de mapas.
-          </p>
+          <details className="search-privacy">
+            <summary>Localização e privacidade</summary>
+            <p className="location-privacy">
+              Localização só com sua permissão, sem histórico salvo. Cidade e
+              área consultadas são enviadas aos serviços de mapas.
+            </p>
+          </details>
         </div>
         <div className="results-heading">
           <h3>
@@ -148,9 +163,9 @@ export function EcopointSearch() {
       </aside>
       <div className="map-main">
         <div className="map-toolbar">
-          <p>Mova o mapa e busque na área desejada.</p>
+          {!selectedPoint && <p>Mova o mapa e busque na área desejada.</p>}
           <div className="flex flex-wrap gap-2">
-            {userLocation && (
+            {visibleLocation && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -167,7 +182,7 @@ export function EcopointSearch() {
               onClick={() => setFitVersion((value) => value + 1)}
             >
               <Scan data-icon="inline-start" aria-hidden="true" />
-              Ver todos
+              {routePlanner.route ? 'Ver rota' : 'Ver todos'}
             </Button>
             <Button onClick={() => void search(viewport.current, radius)}>
               <Search data-icon="inline-start" aria-hidden="true" />
@@ -175,7 +190,14 @@ export function EcopointSearch() {
             </Button>
           </div>
         </div>
-        <div role="status" aria-live="polite" className="map-progress">
+        {selectedPoint && (
+          <RoutePlanner destination={selectedPoint} planner={routePlanner} />
+        )}
+        <div
+          role="status"
+          aria-live="polite"
+          className={`map-progress${selectedPoint && !busy ? ' is-quiet' : ''}`}
+        >
           {busy ? (
             <>
               <LoaderCircle
@@ -225,35 +247,45 @@ export function EcopointSearch() {
             focus={focus}
             queryCenter={center}
             radius={radius}
-            userLocation={userLocation}
+            userLocation={visibleLocation}
+            route={routePlanner.route}
             points={points}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            onRoute={(id) => {
+              setSelectedId(id)
+              document
+                .getElementById('route-planner')
+                ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+            }}
             onViewportChange={onViewportChange}
             fitVersion={fitVersion}
             recenterVersion={recenterVersion}
           />
         </Suspense>
-        <p className="search-source">
-          Pontos municipais:{' '}
-          <a
-            href="https://www.indaiatuba.sp.gov.br/urbanismo/coleta-seletiva/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Prefeitura de Indaiatuba
-          </a>
-          . Mapa e dados colaborativos:{' '}
-          <a
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noreferrer"
-          >
-            © OpenStreetMap contributors
-          </a>{' '}
-          · Localidades: Nominatim. Confirme os materiais e horários antes do
-          descarte. Distâncias em linha reta.
-        </p>
+        <details className="map-data-details">
+          <summary>Fontes e informações dos dados</summary>
+          <p className="search-source">
+            Pontos municipais:{' '}
+            <a
+              href="https://www.indaiatuba.sp.gov.br/urbanismo/coleta-seletiva/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Prefeitura de Indaiatuba
+            </a>
+            . Mapa e dados colaborativos:{' '}
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noreferrer"
+            >
+              © OpenStreetMap contributors
+            </a>{' '}
+            · Localidades: Nominatim. Confirme os materiais e horários antes do
+            descarte. Distâncias em linha reta.
+          </p>
+        </details>
       </div>
     </div>
   )
