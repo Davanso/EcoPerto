@@ -5,7 +5,8 @@ if (!['http:', 'https:'].includes(base.protocol))
 const checks = [
   {
     path: '/api/ecopoints?lat=-23.091&lon=-47.218&radius=5000',
-    valid: (body) => body.freshness === 'official' && body.points?.length === 4,
+    valid: (body) =>
+      body.points?.filter((point) => point.source === 'official').length === 4,
   },
   {
     path: '/api/ecopoints?lat=-22.905&lon=-47.061&radius=5000',

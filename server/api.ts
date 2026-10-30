@@ -53,7 +53,9 @@ export function createApiHandler(
         const result = await services.searchPoints(center, radius)
         res.setHeader(
           'Cache-Control',
-          'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400',
+          result.freshness === 'official'
+            ? 'public, max-age=30, s-maxage=60'
+            : 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400',
         )
         console.info(
           JSON.stringify({

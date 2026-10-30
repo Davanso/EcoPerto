@@ -61,11 +61,14 @@ async function searchRemote(
     throw new Error('O serviço retornou uma resposta inválida.')
   }
   if (!response.ok) {
-    console.error('ecopoints_request_failed', {
-      status: response.status,
-      code: payload?.code,
-      requestId: response.headers.get('X-Request-Id'),
-    })
+    console.error(
+      JSON.stringify({
+        event: 'ecopoints_request_failed',
+        status: response.status,
+        code: payload?.code,
+        requestId: response.headers.get('X-Request-Id'),
+      }),
+    )
     throw new Error(
       payload?.error ||
         'O serviço de coleta está temporariamente indisponível.',

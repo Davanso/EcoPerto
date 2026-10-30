@@ -1,6 +1,7 @@
 import { createServer, type Server } from 'node:http'
 import { afterEach, expect, it, vi } from 'vitest'
 import { createApiHandler } from './api.ts'
+import { createEcopointService } from './ecopoints.ts'
 import { ApiError } from './errors.ts'
 
 let server: Server | undefined
@@ -26,7 +27,14 @@ async function start(handler = createApiHandler()) {
 }
 
 it('serves the production HTTP contract for Indaiatuba with 200 and a trace id', async () => {
-  const base = await start()
+  const base = await start(
+    createApiHandler({
+      searchPoints: createEcopointService(
+        vi.fn().mockRejectedValue(new TypeError('offline')),
+      ),
+      searchPlaces: vi.fn(),
+    }),
+  )
   const response = await fetch(
     `${base}/api/ecopoints?lat=-23.091&lon=-47.218&radius=5000`,
   )
