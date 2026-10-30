@@ -241,27 +241,51 @@ h2 {
   font-family: inherit;
 }
 .ecopoint-map .ecopoint-marker {
+  background: transparent;
+  border: 0;
+  color: white;
+}
+.ecopoint-marker-body {
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50% 50% 50% 5px;
   border: 3px solid white;
-  background: #12834f;
-  color: white;
+  background: #137b50;
+  transform: rotate(-45deg);
   box-shadow:
-    0 0 0 2px #0b5039,
-    0 4px 12px #102e3560;
-  font-size: 14px;
+    0 0 0 1px #0b503940,
+    -3px 5px 10px #102e3545;
+  font-size: 13px;
   font-weight: 800;
+  transition:
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+.ecopoint-marker-body > span {
+  transform: rotate(45deg);
+}
+.ecopoint-marker:hover .ecopoint-marker-body {
+  background: #095e3b;
+  box-shadow:
+    0 0 0 5px #137b5026,
+    -3px 5px 12px #102e3550;
 }
 .ecopoint-map .leaflet-tile-pane {
   filter: grayscale(1) contrast(0.8) brightness(1.08);
 }
-.ecopoint-marker.is-selected {
+.ecopoint-marker.is-selected .ecopoint-marker-body {
   background: #e5a22b;
   color: #19362a;
   box-shadow:
-    0 0 0 3px #714c0f,
-    0 4px 15px #102e3570;
+    0 0 0 5px #e5a22b40,
+    -3px 5px 12px #102e3560;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ecopoint-marker-body {
+    transition: none;
+  }
 }
 .ecopoint-marker:focus-visible {
   outline: 3px solid #2563eb;

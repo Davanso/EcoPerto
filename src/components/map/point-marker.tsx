@@ -20,10 +20,10 @@ export function PointMarker({
     () =>
       divIcon({
         className: `ecopoint-marker${selected ? ' is-selected' : ''}`,
-        html: `<span aria-hidden="true">${number}</span>`,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
-        popupAnchor: [0, -20],
+        html: `<span class="ecopoint-marker-body" aria-hidden="true"><span>${number}</span></span>`,
+        iconSize: [40, 48],
+        iconAnchor: [20, 46],
+        popupAnchor: [0, -44],
       }),
     [number, selected],
   )
