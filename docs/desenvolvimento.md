@@ -72,7 +72,7 @@ src/services/places/         cliente da pesquisa de localidades
 
 ## Validação e publicação
 
-Em 29/10/2026, os 44 testes passam, assim como build, lint e formatação. Testes incluem falhas dos provedores, cache, troca de instância, deduplicação de requisições, raio, preservação de resultados, StrictMode, GPS concedido/negado simulado, cancelamento e ausência de callback. Regressões da câmera verificam inclusão da posição do usuário nos limites, atualizações de resultados e centralização sem nova consulta. Testes HTTP reais com o handler Node validam contrato, 200 municipal, 400/405, códigos, `Retry-After`, correlação e não exposição de erros internos.
+Em 29/10/2026, os 46 testes passam, assim como build, lint e formatação. Testes incluem falhas dos provedores, cache, troca de instância, deduplicação de requisições, raio, preservação de resultados, StrictMode, GPS concedido/negado simulado, cancelamento e ausência de callback. Regressões da câmera verificam inclusão da posição do usuário nos limites, atualizações de resultados e centralização sem nova consulta. Testes HTTP reais com o handler Node validam contrato, 200 municipal, 400/405, códigos, `Retry-After`, correlação e não exposição de erros internos.
 
 Rotas internas ainda não estão integradas; proposta em [rotas-no-app.md](rotas-no-app.md). A navegação externa permanece disponível.
 
@@ -93,3 +93,11 @@ Próxima alternativa sem Google: [NextGIS Overpass](https://docs.nextgis.com/doc
 Fontes técnicas: [métodos e codificação Overpass](https://dev.overpass-api.de/command_line.html), [política Private.coffee](https://overpass.private.coffee/). O cache reduz chamadas e preserva consultas anteriores, mas não resolve a primeira consulta quando todos os provedores falham. Mesmo um serviço disponível só retorna pontos existentes na base OSM; cobertura mundial de consulta não garante cadastro completo em toda cidade.
 
 Após a configuração pelo titular e novo deploy (`dpl_A2cRtqkmkR8XM5GiiQe76DCKKZYr`), todos os checks públicos passaram: Indaiatuba HTTP 200, quatro pontos, 741 ms; Campinas HTTP 200, quatro pontos OSM, 905 ms; São Paulo HTTP 200, 25 pontos OSM, 926 ms; localidades HTTP 200, 611 ms. Logs `overpass_success` confirmaram `overpass.nextgis.com` com respostas de Campinas em 557 ms e São Paulo em 505 ms. São medições pontuais, não SLA. Nenhum segredo foi recuperado ou incluído nos commits. O bloqueio anterior foi superado em produção com o provedor autenticado; a completude dos cadastros por cidade continua dependendo da base OSM.
+
+### Interação com o mapa — 30/10/2026
+
+Alterar o raio solicita imediatamente outra consulta na mesma área, remove a seleção anterior e atualiza o pontilhado. O seletor aguarda a consulta terminar para evitar sobreposição de mudanças. O enquadramento inclui o círculo do raio selecionado, mesmo quando a quantidade de pontos permanece igual; a quantidade depende dos cadastros existentes na área ampliada. Os resultados anteriores mantêm o raio da última resposta no cabeçalho enquanto o loading está ativo.
+
+Zoom com roda do mouse, duplo clique, arraste e gesto de pinça estão habilitados. Os marcadores têm formato de pin numerado, com ponta na coordenada, realce no hover, seleção âmbar e foco de teclado. Testes de regressão verificam o disparo da consulta ao trocar o raio e a expansão dos limites da câmera.
+
+O titular também confirmou que localização e marcador azul funcionam em navegador externo; a falha observada permanece restrita ao navegador incorporado do Codex.
